@@ -1,0 +1,3230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEA — Plataforma de Engenharia da Aprovação</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,300&display=swap');
+
+:root {
+  --forest:    #162B20;
+  --forest-m:  #1F3D2C;
+  --forest-l:  #2A5239;
+  --forest-xl: #3B7356;
+  --amber:     #C8A838;
+  --amber-l:   #E4C55A;
+  --amber-bg:  rgba(200,168,56,.09);
+  --ivory:     #F8F3EA;
+  --ivory-2:   #EFE9DC;
+  --ivory-3:   #E5DDD0;
+  --charcoal:  #1A1A1A;
+  --mid:       #4A5568;
+  --light:     #8A9BAA;
+  --red:       #B83232;
+  --green:     #27824A;
+  --r:         5px;
+  --sh:        0 1px 12px rgba(22,43,32,.10);
+  --sh2:       0 4px 28px rgba(22,43,32,.16);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px;scroll-behavior:smooth}
+body{background:var(--ivory);color:var(--charcoal);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column;line-height:1.55}
+
+/* ═══ SCROLLBAR ═══ */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--ivory-2)}
+::-webkit-scrollbar-thumb{background:var(--forest-l);border-radius:20px}
+
+/* ═══ HEADER ═══ */
+header{background:var(--forest);position:sticky;top:0;z-index:200;box-shadow:0 2px 24px rgba(0,0,0,.4)}
+.hdr{max-width:1360px;margin:0 auto;padding:0 1.75rem;display:flex;align-items:center;gap:1.25rem;height:58px}
+.logo{font-family:'Cormorant Garamond',serif;font-size:1.65rem;font-weight:700;color:var(--amber);flex-shrink:0;letter-spacing:.02em}
+.logo small{display:block;font-family:'Space Mono',monospace;font-size:.55rem;color:rgba(248,243,234,.5);letter-spacing:.16em;text-transform:uppercase;margin-top:-3px}
+.htag{background:var(--amber);color:var(--forest);font-family:'Space Mono',monospace;font-size:.58rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:.22rem .65rem;border-radius:20px;flex-shrink:0}
+nav{display:flex;gap:.15rem;margin-left:auto}
+.nav-btn{background:none;border:none;color:rgba(248,243,234,.55);font-family:'Space Mono',monospace;font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;padding:.4rem .8rem;border-radius:var(--r);cursor:pointer;transition:all .18s;white-space:nowrap}
+.nav-btn:hover,.nav-btn.on{background:rgba(200,168,56,.18);color:var(--amber-l)}
+.nav-sep{width:1px;background:rgba(248,243,234,.12);margin:.4rem .2rem}
+
+/* ═══ MAIN ═══ */
+main{flex:1;max-width:1360px;margin:0 auto;width:100%;padding:2rem 1.75rem}
+.panel{display:none;animation:fi .28s ease}
+.panel.on{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══ PAGE HEADER ═══ */
+.ph{margin-bottom:1.75rem;padding-bottom:.9rem;border-bottom:1px solid var(--ivory-3)}
+.ph h1{font-family:'Cormorant Garamond',serif;font-size:2.1rem;font-weight:700;color:var(--forest);margin-bottom:.2rem}
+.ph p{font-family:'Space Mono',monospace;font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--light)}
+
+/* ═══ TABS ═══ */
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--ivory-3);margin-bottom:1.5rem}
+.tab{padding:.6rem 1.2rem;font-size:.82rem;font-weight:600;color:var(--mid);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .18s}
+.tab.on{color:var(--forest);border-color:var(--forest)}
+.tab-panel{display:none}
+.tab-panel.on{display:block}
+
+/* ═══ CARDS GRID ═══ */
+.grid{display:grid;gap:1.1rem}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:900px){.g2,.g3,.g4{grid-template-columns:1fr}}
+@media(max-width:700px){.g2{grid-template-columns:1fr}}
+
+/* ═══ CARD ═══ */
+.card{background:#fff;border:1px solid var(--ivory-3);border-radius:var(--r);padding:1.5rem;box-shadow:var(--sh);transition:all .18s;cursor:default}
+.card.link{cursor:pointer}
+.card.link:hover{transform:translateY(-2px);box-shadow:var(--sh2);border-color:var(--forest-l)}
+.card-ico{font-size:1.5rem;margin-bottom:.65rem}
+.card-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:700;color:var(--forest);margin-bottom:.35rem}
+.card-desc{font-size:.82rem;color:var(--mid);line-height:1.6;margin-bottom:.9rem}
+.badge{display:inline-block;background:var(--forest);color:var(--amber);font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;padding:.18rem .6rem;border-radius:20px}
+.badge.amber{background:var(--amber);color:var(--forest)}
+.badge.light{background:var(--ivory-2);color:var(--mid)}
+
+/* ═══ FORM ═══ */
+.fblock{background:#fff;border:1px solid var(--ivory-3);border-radius:var(--r);padding:1.75rem;box-shadow:var(--sh);margin-bottom:1.1rem}
+.fblock-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:700;color:var(--forest);margin-bottom:1.2rem;display:flex;align-items:center;gap:.6rem}
+.fblock-num{background:var(--amber);color:var(--forest);width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:.65rem;font-weight:700;flex-shrink:0}
+.frow{display:grid;gap:.9rem;margin-bottom:.9rem}
+.frow.c2{grid-template-columns:1fr 1fr}
+.frow.c3{grid-template-columns:1fr 1fr 1fr}
+.frow.c1{grid-template-columns:1fr}
+@media(max-width:700px){.frow.c2,.frow.c3{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:.38rem}
+label{font-size:.7rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--forest);font-family:'Space Mono',monospace}
+label .opt{color:var(--light);font-weight:400;text-transform:none;letter-spacing:0;font-size:.68rem;margin-left:.3rem}
+input[type=text],input[type=number],select,textarea{border:1.5px solid var(--ivory-3);border-radius:var(--r);padding:.6rem .8rem;font-family:'DM Sans',sans-serif;font-size:.87rem;color:var(--charcoal);background:var(--ivory);transition:border-color .18s,box-shadow .18s;width:100%;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--forest-l);box-shadow:0 0 0 3px rgba(42,82,57,.1);background:#fff}
+textarea{resize:vertical;min-height:90px;line-height:1.55}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%23162B20' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .8rem center;padding-right:2.3rem}
+
+/* ═══ TOGGLE BUTTONS ═══ */
+.tg-group{display:flex;gap:.4rem;flex-wrap:wrap}
+.tg-btn{border:1.5px solid var(--ivory-3);border-radius:var(--r);background:var(--ivory);color:var(--mid);padding:.4rem .9rem;font-size:.79rem;cursor:pointer;transition:all .18s;font-family:'DM Sans',sans-serif}
+.tg-btn.on{border-color:var(--forest);background:var(--forest);color:var(--amber)}
+
+/* ═══ NÍVEL SELECTOR ═══ */
+.nivel-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;margin-bottom:.9rem}
+.nivel-card{border:2px solid var(--ivory-3);border-radius:var(--r);padding:.9rem;text-align:center;cursor:pointer;transition:all .18s;background:var(--ivory)}
+.nivel-card:hover{border-color:var(--forest-l)}
+.nivel-card.on{border-color:var(--forest);background:var(--forest)}
+.nivel-card.on .nc-ico,.nivel-card.on .nc-label{color:var(--amber)}
+.nivel-card.on .nc-desc{color:rgba(248,243,234,.65)}
+.nc-ico{font-size:1.4rem;margin-bottom:.3rem}
+.nc-label{font-family:'Space Mono',monospace;font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--forest);margin-bottom:.2rem}
+.nc-desc{font-size:.72rem;color:var(--mid)}
+@media(max-width:700px){.nivel-grid{grid-template-columns:repeat(2,1fr)}}
+
+/* ═══ CONCURSO FIELDS (shows only when concurso) ═══ */
+.concurso-fields{display:none}
+.concurso-fields.show{display:block}
+
+/* ═══ BUTTONS ═══ */
+.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1.5rem;border-radius:var(--r);font-size:.83rem;font-weight:600;cursor:pointer;border:none;transition:all .18s;font-family:'DM Sans',sans-serif;text-decoration:none;white-space:nowrap}
+.btn-primary{background:var(--forest);color:var(--amber)}
+.btn-primary:hover{background:var(--forest-l)}
+.btn-amber{background:var(--amber);color:var(--forest);font-weight:700}
+.btn-amber:hover{background:var(--amber-l)}
+.btn-outline{background:transparent;border:1.5px solid var(--forest);color:var(--forest)}
+.btn-outline:hover{background:var(--ivory-2)}
+.btn-sm{padding:.38rem .9rem;font-size:.76rem}
+.btn-row{display:flex;gap:.7rem;flex-wrap:wrap;align-items:center;margin-top:1.4rem}
+
+/* ═══ PROMPT OUTPUT BOX ═══ */
+.prompt-wrap{margin-top:1.5rem}
+.prompt-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem}
+.prompt-label{font-family:'Space Mono',monospace;font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--mid)}
+.prompt-actions{display:flex;gap:.4rem}
+.prompt-box{background:var(--forest);border-radius:var(--r);padding:1.4rem 1.5rem;font-family:'Space Mono',monospace;font-size:.73rem;color:rgba(248,243,234,.88);line-height:1.72;white-space:pre-wrap;word-break:break-word;max-height:520px;overflow-y:auto;border:1px solid rgba(248,243,234,.06)}
+.prompt-box .hl{color:var(--amber-l);font-weight:700}
+.prompt-box .cm{color:rgba(248,243,234,.42)}
+.prompt-box.gas{max-height:420px}
+.prompt-empty{color:rgba(248,243,234,.3);font-style:italic}
+
+/* ═══ INFO BOXES ═══ */
+.info{background:rgba(42,82,57,.08);border-left:3px solid var(--forest-l);border-radius:0 var(--r) var(--r) 0;padding:.85rem 1rem;font-size:.82rem;color:var(--forest-m);line-height:1.55}
+.info.warn{background:rgba(200,168,56,.1);border-color:var(--amber);color:#6B4D12}
+.info.err{background:rgba(184,50,50,.08);border-color:var(--red);color:#7A1A1A}
+.info strong{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.28rem;font-family:'Space Mono',monospace}
+.info+.info{margin-top:.6rem}
+
+/* ═══ SEPARATOR ═══ */
+.sep{border:none;border-top:1px solid var(--ivory-3);margin:1.4rem 0}
+
+/* ═══ STATS ROW ═══ */
+.stats-row{display:grid;gap:.7rem;margin-bottom:1.3rem}
+.stats-row.s4{grid-template-columns:repeat(4,1fr)}
+.stats-row.s3{grid-template-columns:repeat(3,1fr)}
+@media(max-width:700px){.stats-row.s4,.stats-row.s3{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--ivory);border:1px solid var(--ivory-3);border-radius:var(--r);padding:.9rem;text-align:center}
+.stat-v{font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:700;color:var(--forest);display:block}
+.stat-l{font-size:.7rem;color:var(--mid);margin-top:.15rem}
+
+/* ═══ TAG LIST ═══ */
+.tag-list{display:flex;flex-wrap:wrap;gap:.38rem;margin-top:.5rem}
+.tag{padding:.22rem .72rem;border-radius:20px;font-size:.7rem;font-family:'Space Mono',monospace}
+.tag.forest{background:var(--forest);color:var(--ivory)}
+.tag.amber{background:var(--amber);color:var(--forest);font-weight:700}
+.tag.light{background:var(--ivory-2);color:var(--mid)}
+
+/* ═══ CHECKLIST ═══ */
+.checklist{list-style:none}
+.checklist li{display:flex;align-items:flex-start;gap:.6rem;padding:.48rem 0;font-size:.84rem;border-bottom:1px solid var(--ivory-2)}
+.checklist li:last-child{border:none}
+.checklist li::before{content:'◦';color:var(--forest-xl);flex-shrink:0;margin-top:2px}
+.checklist li.done::before{content:'●';color:var(--green)}
+
+/* ═══ UPLOAD ═══ */
+.upload-zone{border:2px dashed var(--ivory-3);border-radius:var(--r);padding:1.2rem;text-align:center;cursor:pointer;transition:all .18s;position:relative}
+.upload-zone:hover{border-color:var(--forest-l);background:rgba(42,82,57,.03)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-ico{font-size:1.5rem;margin-bottom:.4rem}
+.upload-txt{font-size:.8rem;color:var(--mid)}
+.upload-txt strong{color:var(--forest)}
+.file-list{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.6rem}
+.fchip{background:var(--forest);color:var(--ivory);font-size:.7rem;font-family:'Space Mono',monospace;padding:.22rem .7rem;border-radius:20px;display:flex;align-items:center;gap:.35rem}
+.fchip button{background:none;border:none;color:var(--amber);cursor:pointer;font-size:.9rem;padding:0;line-height:1}
+
+/* ═══ PERFORMANCE TABLE ═══ */
+.perf-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.perf-table th{background:var(--forest);color:var(--amber);font-family:'Space Mono',monospace;font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;padding:.6rem .9rem;text-align:left}
+.perf-table td{padding:.55rem .9rem;border-bottom:1px solid var(--ivory-2)}
+.perf-table tr:hover td{background:rgba(42,82,57,.04)}
+.perf-pct{display:inline-block;background:var(--ivory-2);border-radius:20px;padding:.15rem .6rem;font-family:'Space Mono',monospace;font-size:.65rem}
+.perf-pct.hi{background:rgba(39,130,74,.15);color:var(--green)}
+.perf-pct.lo{background:rgba(184,50,50,.1);color:var(--red)}
+.perf-pct.mid{background:rgba(200,168,56,.15);color:#7A5800}
+
+/* ═══ TOAST ═══ */
+#toast{position:fixed;bottom:1.8rem;right:1.8rem;background:var(--forest);color:var(--ivory);padding:.85rem 1.3rem;border-radius:var(--r);font-size:.82rem;box-shadow:0 4px 20px rgba(0,0,0,.25);transform:translateY(70px);opacity:0;transition:all .28s cubic-bezier(.4,0,.2,1);z-index:9999;max-width:340px}
+#toast.on{transform:translateY(0);opacity:1}
+#toast.ok{background:var(--green)}
+#toast.er{background:var(--red)}
+
+/* ═══ PROGRESS ═══ */
+.prog-wrap{margin:.75rem 0}
+.prog-label{display:flex;justify-content:space-between;font-size:.75rem;color:var(--mid);margin-bottom:.35rem}
+.prog-bar{background:var(--ivory-2);border-radius:20px;height:5px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--forest-l),var(--amber));border-radius:20px;transition:width .4s ease}
+
+/* ═══ MODAL ═══ */
+.modal-bg{position:fixed;inset:0;background:rgba(22,43,32,.7);z-index:300;display:none;align-items:center;justify-content:center;padding:1.5rem}
+.modal-bg.on{display:flex}
+.modal{background:#fff;border-radius:8px;padding:2rem;max-width:680px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:700;color:var(--forest);margin-bottom:1.1rem}
+.modal-close{float:right;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--mid);margin-top:-.3rem}
+
+/* ═══ RESPONSIVO ═══ */
+@media(max-width:700px){
+  main{padding:1.25rem 1rem}
+  .hdr{padding:0 1rem}
+  nav .nav-btn{font-size:.58rem;padding:.35rem .55rem}
+  .ph h1{font-size:1.6rem}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hdr">
+    <div class="logo">MEA<small>Engenharia da Aprovação</small></div>
+    <span class="htag">AKE UFT-1.0</span>
+    <nav>
+      <button class="nav-btn on" onclick="nav(this,'home')">🏠 Início</button>
+      <div class="nav-sep"></div>
+      <button class="nav-btn" onclick="nav(this,'apostila')">📘 Apostila</button>
+      <button class="nav-btn" onclick="nav(this,'lista')">📝 Lista</button>
+      <button class="nav-btn" onclick="nav(this,'quiz')">🧪 Questionário</button>
+      <div class="nav-sep"></div>
+      <button class="nav-btn" onclick="nav(this,'executar')" style="background:rgba(200,168,56,.12);color:var(--amber-l);font-weight:700">▶ Executar Script</button>
+      <div class="nav-sep"></div>
+      <button class="nav-btn" onclick="nav(this,'banca')">🔬 Análise de Banca</button>
+      <button class="nav-btn" onclick="nav(this,'prompts')">📋 Prompts Prontos</button>
+      <div class="nav-sep"></div>
+      <button class="nav-btn" onclick="nav(this,'historico')">📊 Histórico</button>
+      <button class="nav-btn" onclick="nav(this,'gas')">⚙ GAS Backend</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<!-- ══════════════════════════════════════════
+     HOME
+══════════════════════════════════════════ -->
+<div class="panel on" id="p-home">
+  <div class="ph"><h1>Plataforma MEA</h1><p>Método Engenharia da Aprovação · AKE UFT-1.0 · Geração de Prompts + Backend GAS</p></div>
+
+  <div class="info warn" style="margin-bottom:1.4rem">
+    <strong>Fluxo completo da plataforma</strong>
+    <strong style="font-family:'Space Mono',monospace;font-size:.72rem;display:inline">PASSO 1:</strong> Use os módulos abaixo para gerar o <em>prompt</em> → 
+    <strong style="font-family:'Space Mono',monospace;font-size:.72rem;display:inline">PASSO 2:</strong> Cole o prompt em qualquer IA (Claude, ChatGPT, Gemini) → 
+    <strong style="font-family:'Space Mono',monospace;font-size:.72rem;display:inline">PASSO 3:</strong> A IA te devolve um <em>script/código</em> → 
+    <strong style="font-family:'Space Mono',monospace;font-size:.72rem;display:inline">PASSO 4:</strong> Cole o script no módulo <strong>▶ Executar Script</strong> → o documento é gerado no seu Drive automaticamente.
+  </div>
+
+  <div class="grid g4">
+    <div class="card link" onclick="nav(document.querySelector('[onclick*=apostila]'),'apostila')">
+      <div class="card-ico">📘</div>
+      <div class="card-title">Gerar Apostila</div>
+      <div class="card-desc">Gera o prompt para a IA. A IA devolve um script que você executa no módulo ▶ Executar Script.</div>
+      <span class="badge">Gera Prompt</span>
+    </div>
+    <div class="card link" onclick="nav(document.querySelector('[onclick*=lista]'),'lista')">
+      <div class="card-ico">📝</div>
+      <div class="card-title">Gerar Lista</div>
+      <div class="card-desc">Gera o prompt para a IA. A IA devolve um script que você executa no módulo ▶ Executar Script.</div>
+      <span class="badge">Gera Prompt</span>
+    </div>
+    <div class="card link" onclick="nav(document.querySelector('[onclick*=quiz]'),'quiz')">
+      <div class="card-ico">🧪</div>
+      <div class="card-title">Questionário</div>
+      <div class="card-desc">Gera o prompt para a IA. A IA devolve um script que você executa no módulo ▶ Executar Script.</div>
+      <span class="badge">Gera Prompt</span>
+    </div>
+    <div class="card link" onclick="nav(document.querySelector('[onclick*=executar]'),'executar')" style="border-color:var(--amber);background:rgba(200,168,56,.05)">
+      <div class="card-ico">▶</div>
+      <div class="card-title" style="color:var(--amber)">Executar Script</div>
+      <div class="card-desc">Cole aqui o script devolvido pela IA. A plataforma envia para o GAS, que gera o documento no Drive e registra no Sheets.</div>
+      <span class="badge amber">Módulo Principal</span>
+    </div>
+  </div>
+
+  <div class="grid g3" style="margin-top:1.1rem">
+    <div class="card link" onclick="nav(document.querySelector('[onclick*=prompts]'),'prompts')">
+      <div class="card-ico">📋</div>
+      <div class="card-title">Prompts Prontos</div>
+      <div class="card-desc">Biblioteca com todos os prompts pré-configurados. Copie e cole direto na IA.</div>
+      <span class="badge amber">Biblioteca</span>
+    </div>
+    <div class="card link" onclick="nav(document.querySelector('[onclick*=historico]'),'historico')">
+      <div class="card-ico">📊</div>
+      <div class="card-title">Histórico &amp; Desempenho</div>
+      <div class="card-desc">Visualize guias e listas gerados, acompanhe seu progresso nos questionários.</div>
+      <span class="badge">Via GAS</span>
+    </div>
+    <div class="card link" onclick="nav(document.querySelector('[onclick*=gas]'),'gas')">
+      <div class="card-ico">⚙</div>
+      <div class="card-title">Backend GAS</div>
+      <div class="card-desc">Script Google Apps Script para salvar no Drive e registrar no Sheets. Copie e configure uma vez.</div>
+      <span class="badge">Google Apps Script</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     APOSTILA
+══════════════════════════════════════════ -->
+<div class="panel" id="p-apostila">
+  <div class="ph"><h1>Gerar Apostila</h1><p>Prompt completo para IA · Estrutura MEA · ABNT · Todos os níveis</p></div>
+
+  <!-- NÍVEL -->
+  <div class="fblock">
+    <div class="fblock-title"><div class="fblock-num">1</div>Nível de Ensino</div>
+    <div class="nivel-grid" id="ap-nivel-grid">
+      <div class="nivel-card" onclick="selectNivel(this,'fundamental')" data-nivel="fundamental">
+        <div class="nc-ico">🏫</div><div class="nc-label">Fundamental</div><div class="nc-desc">6º ao 9º ano</div>
+      </div>
+      <div class="nivel-card" onclick="selectNivel(this,'medio')" data-nivel="medio">
+        <div class="nc-ico">🎒</div><div class="nc-label">Médio</div><div class="nc-desc">1º ao 3º ano</div>
+      </div>
+      <div class="nivel-card" onclick="selectNivel(this,'superior')" data-nivel="superior">
+        <div class="nc-ico">🎓</div><div class="nc-label">Superior</div><div class="nc-desc">Graduação</div>
+      </div>
+      <div class="nivel-card on" onclick="selectNivel(this,'concurso')" data-nivel="concurso">
+        <div class="nc-ico">⚖</div><div class="nc-label">Concurso</div><div class="nc-desc">Público</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAMPOS BÁSICOS -->
+  <div class="fblock">
+    <div class="fblock-title"><div class="fblock-num">2</div>Identificação do Material</div>
+    <div class="frow c2">
+      <div class="field"><label>Matéria / Disciplina</label><input type="text" id="ap-materia" placeholder="Ex.: Bioeconomia, Matemática, Direito Constitucional"></div>
+      <div class="field"><label>Assunto / Tópico Principal</label><input type="text" id="ap-assunto" placeholder="Ex.: PSA e Instrumentos Econômicos"></div>
+    </div>
+
+    <!-- CAMPOS SÓ PARA CONCURSO -->
+    <div class="concurso-fields show" id="ap-concurso-fields">
+      <div class="frow c2" style="margin-top:.9rem">
+        <div class="field"><label>Banca Examinadora</label>
+          <select id="ap-banca" onchange="apBuild()">
+            <option value="">Selecionar...</option>
+            <option>CEBRASPE / CESPE</option><option>CONSULPLAN</option><option>FCC</option>
+            <option>FGV</option><option>VUNESP</option><option>IBFC</option>
+            <option>Marinha do Brasil</option><option>Outra</option>
+          </select>
+        </div>
+        <div class="field"><label>Cargo / Especialidade</label><input type="text" id="ap-cargo" placeholder="Ex.: Analista Ambiental – Área Técnica"></div>
+      </div>
+      <div class="frow c2" style="margin-top:.9rem">
+        <div class="field"><label>Órgão / Instituição <span class="opt">(opcional)</span></label><input type="text" id="ap-orgao" placeholder="Ex.: SEMA-AM, SEINFRA-AM"></div>
+        <div class="field"><label>Edição / Ano do Concurso <span class="opt">(opcional)</span></label><input type="text" id="ap-ano" placeholder="Ex.: 2025, 2026"></div>
+      </div>
+      <div class="frow c1" style="margin-top:.9rem">
+        <div class="field"><label>Tópicos completos do edital <span class="opt">(cole exatamente como no edital)</span></label>
+          <textarea id="ap-topicos" rows="5" placeholder="1. Instrumentos econômicos&#10;   1.1 Incentivos fiscais&#10;2. PSA (Lei 14.119/2021)&#10;3. Patrimônio genético (Lei 13.123/2015)..."></textarea>
+        </div>
+      </div>
+      <div class="frow c1" style="margin-top:.9rem">
+        <div class="field"><label>Documento de Análise de Banca <span class="opt">(cole aqui o output do módulo "Análise de Banca")</span></label>
+          <textarea id="ap-analise" rows="4" placeholder="Cole aqui o relatório gerado pelo módulo Análise de Banca para que a apostila seja calibrada para o perfil cognitivo da banca..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- BIBLIOGRAFIAS (TODOS OS NÍVEIS) -->
+    <div class="frow c1" style="margin-top:.9rem">
+      <div class="field"><label>Bibliografias / Fontes de referência <span class="opt">(opcional)</span></label>
+        <textarea id="ap-biblio" rows="3" placeholder="Ex.: BRASIL. Lei nº 13.123/2015. Dispõe sobre...&#10;NUSDEO, Ana Maria. O uso de instrumentos econômicos..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIGURAÇÕES -->
+  <div class="fblock">
+    <div class="fblock-title"><div class="fblock-num">3</div>Configurações da Apostila</div>
+    <div class="frow c3">
+      <div class="field"><label>Extensão estimada</label>
+        <select id="ap-ext"><option value="compacta">Compacta (~15 páginas)</option><option value="padrao" selected>Padrão (~30 páginas)</option><option value="completa">Completa (~50+ páginas)</option></select>
+      </div>
+      <div class="field"><label>Resumos memoráveis</label>
+        <div class="tg-group" id="ap-resumos">
+          <button class="tg-btn on" onclick="tg(this,'ap-resumos')">✅ Ativar</button>
+          <button class="tg-btn" onclick="tg(this,'ap-resumos')">Desativar</button>
+        </div>
+      </div>
+      <div class="field"><label>Dicas MEA ao longo do texto</label>
+        <div class="tg-group" id="ap-dicas">
+          <button class="tg-btn on" onclick="tg(this,'ap-dicas')">✅ Ativar</button>
+          <button class="tg-btn" onclick="tg(this,'ap-dicas')">Desativar</button>
+        </div>
+      </div>
+    </div>
+    <div class="frow c3" style="margin-top:.9rem">
+      <div class="field"><label>Simulado ao final</label>
+        <div class="tg-group" id="ap-sim">
+          <button class="tg-btn on" onclick="tg(this,'ap-sim')">✅ 25 questões</button>
+          <button class="tg-btn" onclick="tg(this,'ap-sim')">15 questões</button>
+          <button class="tg-btn" onclick="tg(this,'ap-sim')">Sem simulado</button>
+        </div>
+      </div>
+      <div class="field"><label>Formato de alternativas</label>
+        <div class="tg-group" id="ap-alt">
+          <button class="tg-btn on" onclick="tg(this,'ap-alt')">A–E (5 opções)</button>
+          <button class="tg-btn" onclick="tg(this,'ap-alt')">A–D (4 opções)</button>
+        </div>
+      </div>
+      <div class="field"><label>Versão</label>
+        <div class="tg-group" id="ap-versao">
+          <button class="tg-btn on" onclick="tg(this,'ap-versao')">v1</button>
+          <button class="tg-btn" onclick="tg(this,'ap-versao')">v2</button>
+          <button class="tg-btn" onclick="tg(this,'ap-versao')">v3</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-amber" onclick="apBuild()">⚡ Gerar Prompt</button>
+    <button class="btn btn-outline" onclick="apClear()">Limpar</button>
+  </div>
+
+  <div class="prompt-wrap" id="ap-wrap" style="display:none">
+    <div class="prompt-header">
+      <span class="prompt-label">Prompt gerado — copie e cole em qualquer IA</span>
+      <div class="prompt-actions">
+        <button class="btn btn-sm btn-outline" onclick="copyEl('ap-prompt')">📋 Copiar</button>
+        <button class="btn btn-sm btn-primary" onclick="gasRegister('apostila')">💾 Registrar no Sheets</button>
+      </div>
+    </div>
+    <div class="prompt-box" id="ap-prompt"><span class="prompt-empty">Aguardando geração...</span></div>
+    <div class="info warn" style="margin-top:.85rem">
+      <strong>Próximos passos</strong>
+      1. Copie o prompt acima · 2. Cole em Claude / ChatGPT / Gemini junto com os PDFs de referência (se houver) · 3. Receba o documento completo · 4. Clique "Registrar no Sheets" para salvar no histórico
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     LISTA
+══════════════════════════════════════════ -->
+<div class="panel" id="p-lista">
+  <div class="ph"><h1>Gerar Lista de Exercícios</h1><p>Prompt MEA calibrado · Distribuição balanceada · Distratores técnicos</p></div>
+
+  <div class="fblock">
+    <div class="fblock-title"><div class="fblock-num">1</div>Nível de Ensino</div>
+    <div class="nivel-grid" id="ls-nivel-grid">
+      <div class="nivel-card" onclick="selectNivelLs(this,'fundamental')" data-nivel="fundamental"><div class="nc-ico">🏫</div><div class="nc-label">Fundamental</div><div class="nc-desc">6º ao 9º ano</div></div>
+      <div class="nivel-card" onclick="selectNivelLs(this,'medio')" data-nivel="medio"><div class="nc-ico">🎒</div><div class="nc-label">Médio</div><div class="nc-desc">1º ao 3º ano</div></div>
+      <div class="nivel-card" onclick="selectNivelLs(this,'superior')" data-nivel="superior"><div class="nc-ico">🎓</div><div class="nc-label">Superior</div><div class="nc-desc">Graduação</div></div>
+      <div class="nivel-card on" onclick="selectNivelLs(this,'concurso')" data-nivel="concurso"><div class="nc-ico">⚖</div><div class="nc-label">Concurso</div><div class="nc-desc">Público</div></div>
+    </div>
+  </div>
+
+  <div class="fblock">
+    <div class="fblock-title"><div class="fblock-num">2</div>Identificação</div>
+    <div class="frow c2">
+      <div class="field"><label>Matéria</label><input type="text" id="ls-materia" placeholder="Ex.: Bioeconomia"></div>
+      <div class="field"><label>Assunto específico da lista</label><input type="text" id="ls-assunto" placeholder="Ex.: PSA, Patrimônio Genético"></div>
+    </div>
+    <div class="concurso-fields show" id="ls-concurso-fields">
+      <div class="frow c2" style="margin-top:.9rem">
+        <div class="field"><label>Banca</label>
+          <select id="ls-banca">
+            <option value="">Selecionar...</option>
+            <option>CEBRASPE / CESPE</option><option>CONSULPLAN</option><option>FCC</option>
+            <option>FGV</option><option>VUNESP</option><option>Marinha do Brasil</option><option>Outra</option>
+          </select>
+        </div>
+        <div class="field"><label>Cargo</label><input type="text" id="ls-cargo" placeholder="Ex.: Analista Ambiental – Área Técnica"></div>
+      </div>
+      <div class="frow c1" style="margin-top:.9rem">
+        <div class="field"><label>Tópicos do edital a cobrir</label>
+          <textarea id="ls-topicos" rows="4" placeholder="Cole os tópicos do edital que devem ser cobertos nesta lista..."></textarea>
+        </div>
+      </div>
+      <div class="frow c1" style="margin-top:.9rem">
+        <div class="field"><label>Documento de análise de banca <span class="opt">(cole o output do módulo Análise de Banca)</span></label>
+          <textarea id="ls-analise" rows="3" placeholder="Cole o relatório da análise de banca para calibrar os distratores e distribuição de gabarito..."></textarea>
+        </div>
+      </div>
+      <div class="frow c1" style="margin-top:.9rem">
+        <div class="field"><label>Apostila/Guia de referência <span class="opt">(cole trecho do guia gerado para calibrar as questões)</span></label>
+          <textarea id="ls-guia" rows="3" placeholder="Cole aqui os resumos-chave da apostila para que as questões sejam alinhadas ao conteúdo estudado..."></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fblock">
+    <div class="fblock-title"><div class="fblock-num">3</div>Configurações da Lista</div>
+    <div class="frow c3">
+      <div class="field"><label>Quantidade de questões</label>
+        <select id="ls-qtd"><option value="10">10 — Rápida</option><option value="15">15 — Lista de Risco</option><option value="20">20 — Padrão</option><option value="25" selected>25 — Simulado</option><option value="30">30 — Estendida</option></select>
+      </div>
+      <div class="field"><label>Alternativas</label>
+        <div class="tg-group" id="ls-alt">
+          <button class="tg-btn on" onclick="tg(this,'ls-alt')">A–E (5)</button>
+          <button class="tg-btn" onclick="tg(this,'ls-alt')">A–D (4)</button>
+        </div>
+      </div>
+      <div class="field"><label>Versão</label>
+        <div class="tg-group" id="ls-versao">
+          <button class="tg-btn on" onclick="tg(this,'ls-versao')">v1</button>
+          <button class="tg-btn" onclick="tg(this,'ls-versao')">v2</button>
+          <button class="tg-btn" onclick="tg(this,'ls-versao')">v3</button>
+          <button class="tg-btn" onclick="tg(this,'ls-versao')">v4</button>
+        </div>
+      </div>
+    </div>
+    <div class="frow c3" style="margin-top:.9rem">
+      <div class="field"><label>Estilo MEA</label>
+        <div class="tg-group" id="ls-estilo">
+          <button class="tg-btn on" onclick="tg(this,'ls-estilo')">Conteudista</button>
+          <button class="tg-btn" onclick="tg(this,'ls-estilo')">Lista de Risco</button>
+          <button class="tg-btn" onclick="tg(this,'ls-estilo')">Híbrida</button>
+        </div>
+      </div>
+      <div class="field"><label>Dificuldade média</label>
+        <div class="tg-group" id="ls-dif">
+          <button class="tg-btn" onclick="tg(this,'ls-dif')">1–2</button>
+          <button class="tg-btn on" onclick="tg(this,'ls-dif')">3</button>
+          <button class="tg-btn" onclick="tg(this,'ls-dif')">4</button>
+          <button class="tg-btn" onclick="tg(this,'ls-dif')">5</button>
+        </div>
+      </div>
+      <div class="field"><label>Gabarito comentado</label>
+        <div class="tg-group" id="ls-gab">
+          <button class="tg-btn on" onclick="tg(this,'ls-gab')">Completo + Armadilhas</button>
+          <button class="tg-btn" onclick="tg(this,'ls-gab')">Resumido</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-amber" onclick="lsBuild()">⚡ Gerar Prompt</button>
+    <button class="btn btn-outline" onclick="lsClear()">Limpar</button>
+  </div>
+
+  <div class="prompt-wrap" id="ls-wrap" style="display:none">
+    <div class="prompt-header">
+      <span class="prompt-label">Prompt gerado — copie e cole em qualquer IA</span>
+      <div class="prompt-actions">
+        <button class="btn btn-sm btn-outline" onclick="copyEl('ls-prompt')">📋 Copiar</button>
+        <button class="btn btn-sm btn-primary" onclick="gasRegister('lista')">💾 Registrar no Sheets</button>
+      </div>
+    </div>
+    <div class="prompt-box" id="ls-prompt"><span class="prompt-empty">Aguardando geração...</span></div>
+    <div class="info warn" style="margin-top:.85rem">
+      <strong>Próximos passos</strong>
+      Copie o prompt · Cole na IA junto com a apostila de referência (se houver) · Receba a lista completa · Registre no histórico
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     QUESTIONÁRIO
+══════════════════════════════════════════ -->
+<div class="panel" id="p-quiz">
+  <div class="ph"><h1>Questionário de Desempenho</h1><p>Gera questionário · Exporta para PDF (Google Docs) ou Google Forms com análise de desempenho</p></div>
+
+  <div class="fblock">
+    <div class="fblock-title"><div class="fblock-num">1</div>Origem do Questionário</div>
+    <div class="frow c2">
+      <div class="field"><label>Matéria / Assunto</label><input type="text" id="qz-materia" placeholder="Ex.: Bioeconomia – PSA e Instrumentos Econômicos"></div>
+      <div class="field"><label>Banca / Nível</label>
+        <select id="qz-banca">
+          <option>CEBRASPE / CESPE</option><option>CONSULPLAN</option><option>FCC</option><option>FGV</option>
+          <option>Marinha do Brasil</option><option>Ensino Fundamental</option><option>Ensino Médio</option><option>Ensino Superior</option>
+        </select>
+      </div>
+    </div>
+    <div class="frow c3" style="margin-top:.9rem">
+      <div class="field"><label>Quantidade de questões</label>
+        <select id="qz-qtd"><option value="10">10</option><option value="15">15</option><option value="20" selected>20</option><option value="25">25</option></select>
+      </div>
+      <div class="field"><label>Dificuldade</label>
+        <div class="tg-group" id="qz-dif">
+          <button class="tg-btn" onclick="tg(this,'qz-dif')">Fácil</button>
+          <button class="tg-btn on" onclick="tg(this,'qz-dif')">Mista</button>
+          <button class="tg-btn" onclick="tg(this,'qz-dif')">Difícil</button>
+        </div>
+      </div>
+      <div class="field"><label>Alternativas</label>
+        <div class="tg-group" id="qz-alt">
+          <button class="tg-btn on" onclick="tg(this,'qz-alt')">A–E (5)</button>
+          <button class="tg-btn" onclick="tg(this,'qz-alt')">A–D (4)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fblock">
+    <div class="fblock-title"><div class="fblock-num">2</div>Formato de Exportação</div>
+    <div class="frow c2">
+      <div class="field"><label>Destino do questionário</label>
+        <div class="tg-group" id="qz-dest">
+          <button class="tg-btn on" onclick="tg(this,'qz-dest');qzToggleDest()">📄 PDF (Google Docs)</button>
+          <button class="tg-btn" onclick="tg(this,'qz-dest');qzToggleDest()">📋 Google Forms</button>
+          <button class="tg-btn" onclick="tg(this,'qz-dest');qzToggleDest()">📄 + 📋 Ambos</button>
+        </div>
+      </div>
+      <div class="field" id="qz-forms-opts" style="display:none">
+        <label>Opções do Forms</label>
+        <div class="tg-group" id="qz-quiz-mode">
+          <button class="tg-btn on" onclick="tg(this,'qz-quiz-mode')">Modo Quiz (pontuação)</button>
+          <button class="tg-btn" onclick="tg(this,'qz-quiz-mode')">Sem pontuação</button>
+        </div>
+      </div>
+    </div>
+    <div class="frow c1" id="qz-analise-row" style="display:none;margin-top:.9rem">
+      <div class="field">
+        <label>Incluir análise de desempenho automática no Forms</label>
+        <div class="tg-group" id="qz-analise">
+          <button class="tg-btn on" onclick="tg(this,'qz-analise')">✅ Sim — análise por tema</button>
+          <button class="tg-btn" onclick="tg(this,'qz-analise')">Não</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-amber" onclick="qzBuild()">⚡ Gerar Prompt + Script</button>
+  </div>
+
+  <div class="prompt-wrap" id="qz-wrap" style="display:none">
+    <div class="tabs">
+      <div class="tab on" onclick="switchTab(this,'qz-tab-prompt')">Prompt para IA</div>
+      <div class="tab" onclick="switchTab(this,'qz-tab-gas')">Script GAS (Forms/PDF)</div>
+    </div>
+
+    <div class="tab-panel on" id="qz-tab-prompt">
+      <div class="prompt-header">
+        <span class="prompt-label">Prompt — cole na IA para gerar as questões</span>
+        <button class="btn btn-sm btn-outline" onclick="copyEl('qz-prompt')">📋 Copiar</button>
+      </div>
+      <div class="prompt-box" id="qz-prompt"></div>
+    </div>
+
+    <div class="tab-panel" id="qz-tab-gas">
+      <div class="prompt-header">
+        <span class="prompt-label">Script GAS — cole no Apps Script após obter as questões da IA</span>
+        <button class="btn btn-sm btn-outline" onclick="copyEl('qz-gas')">📋 Copiar</button>
+      </div>
+      <div class="prompt-box gas" id="qz-gas"></div>
+      <div class="info" style="margin-top:.85rem">
+        <strong>Fluxo completo</strong>
+        1. Gere as questões com o prompt da IA · 2. Cole as questões no script GAS no campo indicado · 3. Execute createQuiz() para criar PDF e/ou Google Forms · 4. Os links aparecem no Sheets automaticamente
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     ANÁLISE DE BANCA
+══════════════════════════════════════════ -->
+<div class="panel" id="p-banca">
+  <div class="ph"><h1>Análise de Banca</h1><p>Engenharia Reversa MEA · Fases 1–8 do Framework Universal · Prompt manual para IA</p></div>
+
+  <div class="info" style="margin-bottom:1.2rem">
+    <strong>Como funciona</strong>
+    Preencha os dados da banca → copie o prompt gerado → cole em qualquer IA junto com as provas e gabaritos em PDF → a IA retorna um relatório completo (perfil cognitivo, distratores, estratégias) → salve o documento e use como entrada nos módulos Apostila e Lista.
+  </div>
+
+  <div class="fblock">
+    <div class="fblock-title"><div class="fblock-num">1</div>Dados da Banca</div>
+    <div class="frow c2">
+      <div class="field"><label>Banca Examinadora</label>
+        <select id="an-banca" onchange="anBuild()">
+          <option value="">Selecionar...</option>
+          <option>CEBRASPE / CESPE</option><option>CONSULPLAN</option><option>FCC</option>
+          <option>FGV</option><option>VUNESP</option><option>IBFC</option>
+          <option>Marinha do Brasil</option><option>Outra</option>
+        </select>
+      </div>
+      <div class="field"><label>Cargo / Área</label><input type="text" id="an-cargo" placeholder="Ex.: Analista Ambiental – SEMA-AM" oninput="anBuild()"></div>
+    </div>
+    <div class="frow c3" style="margin-top:.9rem">
+      <div class="field"><label>Matéria / Disciplina</label><input type="text" id="an-materia" placeholder="Ex.: Bioeconomia" oninput="anBuild()"></div>
+      <div class="field"><label>Nº de provas que vai inserir</label>
+        <select id="an-nprovas" onchange="anBuild()">
+          <option value="3">3 provas (mínimo aceitável)</option>
+          <option value="5" selected>5 provas (recomendado)</option>
+          <option value="10">10 provas (robusto)</option>
+          <option value="15">15+ provas (máximo rigor)</option>
+        </select>
+      </div>
+      <div class="field"><label>Foco da análise</label>
+        <div class="tg-group" id="an-foco">
+          <button class="tg-btn on" onclick="tg(this,'an-foco')">Completo (8 fases)</button>
+          <button class="tg-btn" onclick="tg(this,'an-foco')">Distratores</button>
+          <button class="tg-btn" onclick="tg(this,'an-foco')">Estratégia</button>
+        </div>
+      </div>
+    </div>
+    <div class="frow c1" style="margin-top:.9rem">
+      <div class="field"><label>Conteúdo programático do edital <span class="opt">(opcional mas recomendado)</span></label>
+        <textarea id="an-edital" rows="4" placeholder="Cole o conteúdo programático para cruzamento com tópicos mais cobrados..."></textarea>
+      </div>
+    </div>
+    <div class="frow c1" style="margin-top:.9rem">
+      <div class="field"><label>Observações / padrões já percebidos <span class="opt">(opcional)</span></label>
+        <textarea id="an-obs" rows="2" placeholder="Ex.: 'A banca costuma cobrar muito exceções', 'Questões longas com muitos detalhes'..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-amber" onclick="anBuild()">🔬 Gerar Prompt de Análise</button>
+  </div>
+
+  <div class="prompt-wrap" id="an-wrap" style="display:none">
+    <div class="prompt-header">
+      <span class="prompt-label">Prompt de Engenharia Reversa — cole na IA com os PDFs das provas e gabaritos</span>
+      <div class="prompt-actions">
+        <button class="btn btn-sm btn-outline" onclick="copyEl('an-prompt')">📋 Copiar</button>
+        <button class="btn btn-sm btn-primary" onclick="gasRegister('analise')">💾 Registrar Análise</button>
+      </div>
+    </div>
+    <div class="prompt-box" id="an-prompt"></div>
+    <div class="info warn" style="margin-top:.85rem">
+      <strong>Instrução de uso</strong>
+      Cole este prompt na IA → anexe as provas em PDF → solicite que a IA retorne um documento Markdown estruturado → copie o documento gerado → use como entrada nos campos "Análise de Banca" dos módulos Apostila e Lista para material calibrado ao perfil da banca.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PROMPTS PRONTOS
+══════════════════════════════════════════ -->
+<div class="panel" id="p-prompts">
+  <div class="ph"><h1>Biblioteca de Prompts Prontos</h1><p>Copie e cole direto na IA · 100% configurados · Padrão MEA AKE UFT-1.0</p></div>
+
+  <div class="info" style="margin-bottom:1.2rem">
+    <strong>Sobre esta biblioteca</strong>
+    Prompts pré-configurados para os casos mais comuns. Para material personalizado (banca específica, tópicos do edital), use os módulos Apostila, Lista ou Análise de Banca.
+  </div>
+
+  <div class="tabs">
+    <div class="tab on" onclick="switchTab(this,'pr-tab-ap')">Apostilas</div>
+    <div class="tab" onclick="switchTab(this,'pr-tab-ls')">Listas</div>
+    <div class="tab" onclick="switchTab(this,'pr-tab-an')">Análise</div>
+    <div class="tab" onclick="switchTab(this,'pr-tab-qz')">Questionários</div>
+  </div>
+
+  <div class="tab-panel on" id="pr-tab-ap">
+    <div class="grid g2">
+      <div class="card">
+        <div class="card-title">Apostila CEBRASPE — Concurso Analista</div>
+        <div class="card-desc">Prompt completo para apostila de qualquer matéria para cargos de nível superior, banca CEBRASPE. Inclui perfil cognitivo da banca, estrutura ABNT, dicas MEA e simulado.</div>
+        <div class="btn-row" style="margin-top:.75rem">
+          <button class="btn btn-sm btn-primary" onclick="loadReadyPrompt('ap_cebraspe')">Ver Prompt</button>
+          <button class="btn btn-sm btn-outline" onclick="copyReadyPrompt('ap_cebraspe')">📋 Copiar</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Apostila CONSULPLAN — Auditor Municipal</div>
+        <div class="card-desc">Apostila calibrada para o perfil comportamental da CONSULPLAN. Microssistemas textuais, distratores de absolutização, protocolo PEC de leitura.</div>
+        <div class="btn-row" style="margin-top:.75rem">
+          <button class="btn btn-sm btn-primary" onclick="loadReadyPrompt('ap_consulplan')">Ver Prompt</button>
+          <button class="btn btn-sm btn-outline" onclick="copyReadyPrompt('ap_consulplan')">📋 Copiar</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Apostila Ensino Médio — Qualquer Matéria</div>
+        <div class="card-desc">Apostila didática para estudantes do ensino médio. Linguagem acessível, exemplos do cotidiano, resumos visuais, mapas conceituais.</div>
+        <div class="btn-row" style="margin-top:.75rem">
+          <button class="btn btn-sm btn-primary" onclick="loadReadyPrompt('ap_medio')">Ver Prompt</button>
+          <button class="btn btn-sm btn-outline" onclick="copyReadyPrompt('ap_medio')">📋 Copiar</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Apostila Ensino Superior — Graduação</div>
+        <div class="card-desc">Material universitário com referências bibliográficas ABNT, abordagem acadêmica, profundidade teórica e exemplos aplicados.</div>
+        <div class="btn-row" style="margin-top:.75rem">
+          <button class="btn btn-sm btn-primary" onclick="loadReadyPrompt('ap_superior')">Ver Prompt</button>
+          <button class="btn btn-sm btn-outline" onclick="copyReadyPrompt('ap_superior')">📋 Copiar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="pr-tab-ls">
+    <div class="grid g2">
+      <div class="card">
+        <div class="card-title">Lista de Risco MEA — 15 Questões</div>
+        <div class="card-desc">Lista anti-pegadinha com distratores técnicos, distribuição balanceada e gabarito comentado com nome das armadilhas. Para qualquer banca.</div>
+        <div class="btn-row" style="margin-top:.75rem">
+          <button class="btn btn-sm btn-primary" onclick="loadReadyPrompt('ls_risco')">Ver Prompt</button>
+          <button class="btn btn-sm btn-outline" onclick="copyReadyPrompt('ls_risco')">📋 Copiar</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Simulado Completo — 25 Questões CEBRASPE</div>
+        <div class="card-desc">Simulado no padrão CEBRASPE: 5 alternativas (A–E), distribuição equilibrada, questões com contexto real, gabarito comentado com análise de distratores.</div>
+        <div class="btn-row" style="margin-top:.75rem">
+          <button class="btn btn-sm btn-primary" onclick="loadReadyPrompt('ls_cebraspe')">Ver Prompt</button>
+          <button class="btn btn-sm btn-outline" onclick="copyReadyPrompt('ls_cebraspe')">📋 Copiar</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Lista Ensino Médio — Exercícios</div>
+        <div class="card-desc">Lista de exercícios adaptada para o ensino médio. Linguagem clara, progressão de dificuldade 1→5, exemplos práticos.</div>
+        <div class="btn-row" style="margin-top:.75rem">
+          <button class="btn btn-sm btn-primary" onclick="loadReadyPrompt('ls_medio')">Ver Prompt</button>
+          <button class="btn btn-sm btn-outline" onclick="copyReadyPrompt('ls_medio')">📋 Copiar</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Lista Consulplan — 20 Questões Premium</div>
+        <div class="card-desc">Lista calibrada para a CONSULPLAN: microssistemas textuais, absolutização como armadilha principal, protocolo de leitura embutido.</div>
+        <div class="btn-row" style="margin-top:.75rem">
+          <button class="btn btn-sm btn-primary" onclick="loadReadyPrompt('ls_consulplan')">Ver Prompt</button>
+          <button class="btn btn-sm btn-outline" onclick="copyReadyPrompt('ls_consulplan')">📋 Copiar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="pr-tab-an">
+    <div class="grid g2">
+      <div class="card">
+        <div class="card-title">Análise Completa — Framework MEA 8 Fases</div>
+        <div class="card-desc">Prompt para análise total de qualquer banca: perfil cognitivo, anatomia da prova, mapa de distratores, engenharia reversa do erro, estratégias e validação cruzada.</div>
+        <div class="btn-row" style="margin-top:.75rem">
+          <button class="btn btn-sm btn-primary" onclick="loadReadyPrompt('an_completa')">Ver Prompt</button>
+          <button class="btn btn-sm btn-outline" onclick="copyReadyPrompt('an_completa')">📋 Copiar</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Análise Rápida — Perfil + Distratores</div>
+        <div class="card-desc">Versão compacta focada nas informações mais úteis: tipo de leitura, distratores dominantes e estratégia de eliminação de alternativas.</div>
+        <div class="btn-row" style="margin-top:.75rem">
+          <button class="btn btn-sm btn-primary" onclick="loadReadyPrompt('an_rapida')">Ver Prompt</button>
+          <button class="btn btn-sm btn-outline" onclick="copyReadyPrompt('an_rapida')">📋 Copiar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="pr-tab-qz">
+    <div class="grid g2">
+      <div class="card">
+        <div class="card-title">Questionário Forms + Análise de Desempenho</div>
+        <div class="card-desc">Prompt para gerar questionário com análise automática por tema, identificação de pontos fracos e recomendações de estudo. Exporta para Google Forms.</div>
+        <div class="btn-row" style="margin-top:.75rem">
+          <button class="btn btn-sm btn-primary" onclick="loadReadyPrompt('qz_forms')">Ver Prompt</button>
+          <button class="btn btn-sm btn-outline" onclick="copyReadyPrompt('qz_forms')">📋 Copiar</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Questionário PDF — Formato Apostila</div>
+        <div class="card-desc">Questionário formatado para impressão em PDF via Google Docs. Layout clean, espaço para resposta manual, gabarito separado.</div>
+        <div class="btn-row" style="margin-top:.75rem">
+          <button class="btn btn-sm btn-primary" onclick="loadReadyPrompt('qz_pdf')">Ver Prompt</button>
+          <button class="btn btn-sm btn-outline" onclick="copyReadyPrompt('qz_pdf')">📋 Copiar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Área de exibição do prompt da biblioteca -->
+  <div class="prompt-wrap" id="pr-wrap" style="display:none;margin-top:1.5rem">
+    <div class="prompt-header">
+      <span class="prompt-label" id="pr-titulo">Prompt</span>
+      <div class="prompt-actions">
+        <button class="btn btn-sm btn-outline" onclick="copyEl('pr-prompt')">📋 Copiar</button>
+        <button class="btn btn-sm btn-outline" onclick="document.getElementById('pr-wrap').style.display='none'">✕ Fechar</button>
+      </div>
+    </div>
+    <div class="prompt-box" id="pr-prompt"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     HISTÓRICO
+══════════════════════════════════════════ -->
+<div class="panel" id="p-historico">
+  <div class="ph"><h1>Histórico &amp; Desempenho</h1><p>Guias e listas gerados · Progresso nos questionários · Registrado no Google Sheets</p></div>
+
+  <div class="info warn" style="margin-bottom:1.2rem">
+    <strong>Integração com Google Sheets</strong>
+    O histórico é armazenado no seu Google Sheets via o script GAS. Configure o ID do Sheets na aba "GAS Backend" para sincronizar. Enquanto isso, o histórico local da sessão é exibido abaixo.
+  </div>
+
+  <div class="tabs">
+    <div class="tab on" onclick="switchTab(this,'hi-tab-mat')">Materiais Gerados</div>
+    <div class="tab" onclick="switchTab(this,'hi-tab-perf')">Desempenho</div>
+  </div>
+
+  <div class="tab-panel on" id="hi-tab-mat">
+    <div id="hi-empty" class="info" style="margin-top:.5rem">
+      <strong>Nenhum material registrado nesta sessão</strong>
+      Clique em "Registrar no Sheets" após gerar um prompt para salvar no histórico. Os registros do Drive aparecem via GAS.
+    </div>
+    <div id="hi-table-wrap" style="display:none">
+      <table class="perf-table" id="hi-table">
+        <thead><tr><th>Tipo</th><th>Matéria</th><th>Banca/Nível</th><th>Cargo/Assunto</th><th>Versão</th><th>Data</th><th>Ação</th></tr></thead>
+        <tbody id="hi-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="hi-tab-perf">
+    <div id="perf-empty" class="info" style="margin-top:.5rem">
+      <strong>Sem dados de desempenho ainda</strong>
+      Complete questionários no Google Forms para ver sua análise de desempenho por tema e banca aqui.
+    </div>
+    <div id="perf-data" style="display:none">
+      <div class="stats-row s4" id="perf-stats"></div>
+      <div style="margin-top:1rem">
+        <h4 style="font-family:'Space Mono',monospace;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--forest-l);margin-bottom:.75rem">Desempenho por Tema</h4>
+        <table class="perf-table" id="perf-table">
+          <thead><tr><th>Tema</th><th>Questões</th><th>Acertos</th><th>%</th><th>Status</th></tr></thead>
+          <tbody id="perf-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     GAS BACKEND
+══════════════════════════════════════════ -->
+<div class="panel" id="p-gas">
+  <div class="ph"><h1>Backend Google Apps Script</h1><p>Script único para Drive + Sheets · Configure uma vez · Funciona para sempre</p></div>
+
+  <div class="info" style="margin-bottom:1.1rem">
+    <strong>O que este script faz</strong>
+    Cria a estrutura de pastas no Drive ("Plataforma de Estudos MEA" → Apostilas / Listas / Questionários / Análises) · Registra cada material no Sheets (matéria, banca, concurso, órgão, data, link) · Cria Google Forms quando solicitado · Gera análise de desempenho dos questionários.
+  </div>
+
+  <div class="fblock">
+    <div class="fblock-title"><div class="fblock-num">1</div>Configuração Inicial</div>
+    <div class="frow c2">
+      <div class="field"><label>Nome do autor</label><input type="text" id="gas-autor" value="Paulo Esteves Fernandes Neto" oninput="gasBuild()"></div>
+      <div class="field"><label>Nome da pasta raiz no Drive</label><input type="text" id="gas-pasta" value="Plataforma de Estudos MEA" oninput="gasBuild()"></div>
+    </div>
+    <div class="frow c2" style="margin-top:.9rem">
+      <div class="field"><label>ID do Google Sheets <span class="opt">(cole após criar a planilha)</span></label><input type="text" id="gas-sheet" placeholder="1abc...XYZ" oninput="gasBuild()"></div>
+      <div class="field"><label>E-mail para compartilhamento automático <span class="opt">(opcional)</span></label><input type="text" id="gas-email" placeholder="seuemail@gmail.com" oninput="gasBuild()"></div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-amber" onclick="gasBuild()">⚙ Gerar Script GAS Completo</button>
+  </div>
+
+  <div class="prompt-wrap" id="gas-wrap" style="display:none">
+    <div class="tabs">
+      <div class="tab on" onclick="switchTab(this,'gas-tab-main')">Script Principal (Code.gs)</div>
+      <div class="tab" onclick="switchTab(this,'gas-tab-setup')">Como Configurar</div>
+    </div>
+    <div class="tab-panel on" id="gas-tab-main">
+      <div class="prompt-header">
+        <span class="prompt-label">Cole este código no Google Apps Script (Code.gs)</span>
+        <button class="btn btn-sm btn-outline" onclick="copyEl('gas-code')">📋 Copiar Script</button>
+      </div>
+      <div class="prompt-box gas" id="gas-code"></div>
+    </div>
+    <div class="tab-panel" id="gas-tab-setup">
+      <div class="info" style="margin-bottom:.7rem">
+        <strong>Passo 1 — Criar a Planilha</strong>
+        Acesse sheets.google.com → Criar nova planilha → Copie o ID da URL (entre /d/ e /edit) → Cole no campo acima.
+      </div>
+      <div class="info" style="margin-bottom:.7rem">
+        <strong>Passo 2 — Abrir o Apps Script</strong>
+        Na planilha: Extensões → Apps Script → cole o código gerado no Code.gs → Salve.
+      </div>
+      <div class="info" style="margin-bottom:.7rem">
+        <strong>Passo 3 — Executar setup inicial</strong>
+        No Apps Script, execute a função <code>setupMEA()</code> → Autorize as permissões → As abas e pastas serão criadas automaticamente.
+      </div>
+      <div class="info" style="margin-bottom:.7rem">
+        <strong>Passo 4 — Usar desta plataforma</strong>
+        Volte aqui → sempre que gerar um prompt e clicar "Registrar no Sheets", o material será catalogado. Use a função <code>registerMaterial(dados)</code> via URL fetch ou manualmente.
+      </div>
+      <div class="info warn">
+        <strong>Atenção</strong>
+        Esta plataforma HTML é local (roda no navegador). O registro no Sheets é feito copiando o script e executando manualmente no Apps Script, ou via Google Apps Script Web App (deploy como webapp para integração automática).
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     EXECUTAR SCRIPT
+══════════════════════════════════════════ -->
+<div class="panel" id="p-executar">
+  <div class="ph">
+    <h1>▶ Executar Script</h1>
+    <p>Cole o script devolvido pela IA · A plataforma envia para o GAS · O documento é criado no Drive</p>
+  </div>
+
+  <!-- FLUXO VISUAL -->
+  <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem;padding:1.1rem 1.3rem;background:#fff;border:1px solid var(--ivory-3);border-radius:var(--r);box-shadow:var(--sh)">
+    <div style="text-align:center;min-width:80px">
+      <div style="font-size:1.4rem">📋</div>
+      <div style="font-family:'Space Mono',monospace;font-size:.62rem;color:var(--mid);text-transform:uppercase;letter-spacing:.08em;margin-top:.3rem">Prompt</div>
+    </div>
+    <div style="color:var(--amber);font-size:1.2rem;font-weight:700">→</div>
+    <div style="text-align:center;min-width:80px">
+      <div style="font-size:1.4rem">🤖</div>
+      <div style="font-family:'Space Mono',monospace;font-size:.62rem;color:var(--mid);text-transform:uppercase;letter-spacing:.08em;margin-top:.3rem">IA gera<br>script</div>
+    </div>
+    <div style="color:var(--amber);font-size:1.2rem;font-weight:700">→</div>
+    <div style="text-align:center;min-width:80px;background:rgba(200,168,56,.08);border:2px solid var(--amber);border-radius:var(--r);padding:.5rem">
+      <div style="font-size:1.4rem">▶</div>
+      <div style="font-family:'Space Mono',monospace;font-size:.62rem;color:var(--amber);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-top:.3rem">Você cola<br>aqui</div>
+    </div>
+    <div style="color:var(--amber);font-size:1.2rem;font-weight:700">→</div>
+    <div style="text-align:center;min-width:80px">
+      <div style="font-size:1.4rem">⚙</div>
+      <div style="font-family:'Space Mono',monospace;font-size:.62rem;color:var(--mid);text-transform:uppercase;letter-spacing:.08em;margin-top:.3rem">GAS<br>executa</div>
+    </div>
+    <div style="color:var(--amber);font-size:1.2rem;font-weight:700">→</div>
+    <div style="text-align:center;min-width:80px">
+      <div style="font-size:1.4rem">📄</div>
+      <div style="font-family:'Space Mono',monospace;font-size:.62rem;color:var(--mid);text-transform:uppercase;letter-spacing:.08em;margin-top:.3rem">Doc no<br>Drive</div>
+    </div>
+    <div style="color:var(--amber);font-size:1.2rem;font-weight:700">→</div>
+    <div style="text-align:center;min-width:80px">
+      <div style="font-size:1.4rem">📊</div>
+      <div style="font-family:'Space Mono',monospace;font-size:.62rem;color:var(--mid);text-transform:uppercase;letter-spacing:.08em;margin-top:.3rem">Registro<br>Sheets</div>
+    </div>
+  </div>
+
+  <!-- TIPO DO SCRIPT -->
+  <div class="fblock">
+    <div class="fblock-title"><div class="fblock-num">1</div>Tipo do Script</div>
+    <div class="frow c3">
+      <div class="field">
+        <label>O que este script vai gerar?</label>
+        <div class="tg-group" id="ex-tipo">
+          <button class="tg-btn on" onclick="tg(this,'ex-tipo');exTipoChange()">📘 Apostila / Guia</button>
+          <button class="tg-btn" onclick="tg(this,'ex-tipo');exTipoChange()">📝 Lista de Exercícios</button>
+          <button class="tg-btn" onclick="tg(this,'ex-tipo');exTipoChange()">🧪 Questionário</button>
+          <button class="tg-btn" onclick="tg(this,'ex-tipo');exTipoChange()">🔬 Análise de Banca</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Matéria <span class="opt">(para registro)</span></label>
+        <input type="text" id="ex-materia" placeholder="Ex.: Bioeconomia">
+      </div>
+      <div class="field">
+        <label>Banca / Nível <span class="opt">(para registro)</span></label>
+        <input type="text" id="ex-banca" placeholder="Ex.: CEBRASPE, Ensino Médio">
+      </div>
+    </div>
+    <div class="frow c2" style="margin-top:.9rem">
+      <div class="field">
+        <label>Versão <span class="opt">(para registro)</span></label>
+        <div class="tg-group" id="ex-versao">
+          <button class="tg-btn on" onclick="tg(this,'ex-versao')">v1</button>
+          <button class="tg-btn" onclick="tg(this,'ex-versao')">v2</button>
+          <button class="tg-btn" onclick="tg(this,'ex-versao')">v3</button>
+          <button class="tg-btn" onclick="tg(this,'ex-versao')">v4</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Destino no Drive</label>
+        <div id="ex-destino-label" style="font-size:.82rem;color:var(--forest-l);font-family:'Space Mono',monospace;padding:.6rem .8rem;background:var(--ivory);border:1.5px solid var(--ivory-3);border-radius:var(--r)">
+          📁 Plataforma de Estudos MEA / Apostilas
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ÁREA DE COLE DO SCRIPT -->
+  <div class="fblock">
+    <div class="fblock-title"><div class="fblock-num">2</div>Cole o Script Aqui</div>
+
+    <div class="info" style="margin-bottom:1rem">
+      <strong>De onde vem este script?</strong>
+      Do chat com a IA. Você usou um dos módulos (Apostila, Lista, Questionário, Análise de Banca) para gerar o prompt → colou o prompt na IA → a IA devolveu um script/código completo entre marcadores <code>// --- START_SCRIPT ---</code> e <code>// --- END_SCRIPT ---</code> → cole esse código inteiro abaixo.
+    </div>
+
+    <div class="field">
+      <label>Script / Código devolvido pela IA</label>
+      <div style="position:relative">
+        <textarea
+          id="ex-script"
+          rows="18"
+          style="font-family:'Space Mono',monospace;font-size:.73rem;line-height:1.65;background:#0F1C15;color:rgba(248,243,234,.88);border-color:#2A5239;resize:vertical;min-height:300px;"
+          placeholder="// Cole aqui o script completo devolvido pela IA
+// --- START_SCRIPT ---
+var dados = {
+  materia: &quot;Bioeconomia&quot;,
+  banca: &quot;CEBRASPE&quot;,
+  ...
+};
+
+// ... restante do código ...
+
+resultado = { success: true, docUrl: doc.getUrl(), ... };
+
+// --- END_SCRIPT ---"
+          oninput="exValidateScript()"
+        ></textarea>
+        <div id="ex-script-badge" style="position:absolute;top:.6rem;right:.6rem;display:none">
+          <span style="background:var(--green);color:#fff;font-family:'Space Mono',monospace;font-size:.6rem;padding:.2rem .6rem;border-radius:20px;font-weight:700">✓ Script válido</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- VALIDAÇÃO -->
+    <div id="ex-validation" style="margin-top:.7rem;display:none">
+      <div class="info" id="ex-val-info">
+        <strong id="ex-val-title"></strong>
+        <span id="ex-val-body"></span>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-amber" id="ex-btn-enviar" onclick="exEnviar()" disabled>
+        ▶ Executar no GAS — Gerar Documento
+      </button>
+      <button class="btn btn-outline" onclick="exLimpar()">🗑 Limpar</button>
+      <button class="btn btn-outline" onclick="exValidateScript()">🔍 Validar Script</button>
+    </div>
+  </div>
+
+  <!-- INSTRUÇÕES DE USO DO GAS WEBAPP -->
+  <div class="fblock">
+    <div class="fblock-title"><div class="fblock-num">3</div>Como o GAS executa o script</div>
+
+    <div class="tabs">
+      <div class="tab on" onclick="switchTabLocal(this,'ex-tab-webapp')">Via Web App (automático)</div>
+      <div class="tab" onclick="switchTabLocal(this,'ex-tab-manual')">Via Apps Script (manual)</div>
+      <div class="tab" onclick="switchTabLocal(this,'ex-tab-gas-executor')">Script GAS Executor</div>
+    </div>
+
+    <div class="tab-panel on" id="ex-tab-webapp">
+      <div class="info" style="margin-bottom:.7rem">
+        <strong>Modo Web App — clique em Executar e o documento é criado automaticamente</strong>
+        Configure o GAS Executor (aba ao lado) uma vez → faça deploy como Web App → cole a URL abaixo → pronto. A partir daí, clicar em "Executar no GAS" enviará o script e receberá o link do documento criado.
+      </div>
+      <div class="frow c1" style="margin-top:.9rem">
+        <div class="field">
+          <label>URL do Web App GAS <span class="opt">(configure uma vez)</span></label>
+          <div style="display:flex;gap:.6rem">
+            <input type="text" id="ex-webapp-url" placeholder="https://script.google.com/macros/s/AKfycb.../exec" style="flex:1" oninput="DB.set('webapp_url',this.value)">
+            <button class="btn btn-outline btn-sm" onclick="exTestarWebApp()">Testar conexão</button>
+          </div>
+        </div>
+      </div>
+      <div id="ex-webapp-status" style="margin-top:.6rem;display:none"></div>
+    </div>
+
+    <div class="tab-panel" id="ex-tab-manual">
+      <div class="info warn" style="margin-bottom:.7rem">
+        <strong>Modo Manual — sem Web App configurado</strong>
+        Copie o script abaixo, cole no Apps Script do seu Sheets e execute a função principal (gerarGuia / gerarLista / createQuiz).
+      </div>
+      <div style="margin-top:1rem">
+        <div class="prompt-header">
+          <span class="prompt-label">Script completo para copiar ao Apps Script</span>
+          <button class="btn btn-sm btn-outline" onclick="copyEl('ex-script')">📋 Copiar Script</button>
+        </div>
+        <div class="info" style="margin-top:.7rem">
+          <strong>Passos</strong>
+          1. Copie o script acima · 2. Abra seu Google Sheets → Extensões → Apps Script · 3. Substitua o conteúdo do Code.gs pelo script copiado · 4. Execute a função principal (normalmente <code>gerarGuia()</code>, <code>gerarLista()</code>, ou <code>gerarListaExercicios(dados)</code>) · 5. Autorize as permissões · 6. O documento é criado e o link aparece na caixa de alerta
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="ex-tab-gas-executor">
+      <div class="info" style="margin-bottom:.7rem">
+        <strong>Script GAS Executor — instale uma vez</strong>
+        Este script transforma seu Apps Script em um Web App que aceita scripts externos e os executa. Cole no Code.gs do seu Sheets, faça deploy como Web App e cole a URL na aba "Via Web App".
+      </div>
+      <div class="prompt-header" style="margin-top:1rem">
+        <span class="prompt-label">Script GAS Executor (Code.gs) — instale uma vez</span>
+        <button class="btn btn-sm btn-outline" onclick="copyEl('ex-gas-executor-code')">📋 Copiar</button>
+      </div>
+      <div class="prompt-box gas" id="ex-gas-executor-code">// ════════════════════════════════════════════════════════
+// MEA GAS EXECUTOR · Web App · AKE UFT-1.0
+// Cole este código no Apps Script do seu Google Sheets
+// Depois: Implantar → Nova implantação → Web App
+//   Executar como: "Eu" | Quem acessa: "Qualquer pessoa"
+// Copie a URL gerada e cole na plataforma HTML
+// ════════════════════════════════════════════════════════
+
+var MEA_EXECUTOR_CONFIG = {
+  pastaRaiz:  "Plataforma de Estudos MEA",
+  sheetId:    PropertiesService.getScriptProperties().getProperty("MEA_SHEET_ID") || "",
+  autor:      PropertiesService.getScriptProperties().getProperty("MEA_AUTOR")    || "Candidato MEA",
+  token:      PropertiesService.getScriptProperties().getProperty("MEA_TOKEN")    || "mea2025"
+};
+
+// ── WEB APP ENTRY POINT ──────────────────────────────────
+// CORS: GAS retorna Access-Control-Allow-Origin:* automaticamente
+// quando o output é ContentService com MimeType JSON.
+// O fetch da plataforma envia Content-Type: text/plain para
+// evitar preflight OPTIONS (GAS não suporta OPTIONS).
+function doPost(e) {
+  try {
+    var raw     = e.postData ? e.postData.contents : '{}';
+    var payload = JSON.parse(raw);
+
+    // Verificação de token
+    if (payload.token !== MEA_EXECUTOR_CONFIG.token) {
+      return jsonResponse({ success: false, error: 'Token inválido. Configure o token correto na plataforma.' });
+    }
+
+    var resultado = executarScriptMEA(payload.script, payload.dados || {});
+    return jsonResponse(resultado);
+
+  } catch (err) {
+    return jsonResponse({ success: false, error: err.toString() });
+  }
+}
+
+// doGet: usado pelo botão "Testar conexão" da plataforma
+function doGet(e) {
+  return jsonResponse({
+    status:    'MEA Executor online',
+    versao:    'AKE UFT-1.0',
+    timestamp: new Date().toISOString()
+  });
+}
+
+// Helper: ContentService JSON com CORS
+function jsonResponse(obj) {
+  return ContentService
+    .createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+  // O GAS adiciona Access-Control-Allow-Origin: * automaticamente
+  // para respostas JSON de Web Apps com acesso "Qualquer pessoa"
+}
+
+// ── EXECUTOR PRINCIPAL ───────────────────────────────────
+function executarScriptMEA(scriptCode, dadosExtras) {
+  try {
+    // O script da IA deve terminar com: resultado = { success: true, docUrl: "...", ... }
+    // Injetamos helpers disponíveis no contexto e executamos via eval
+
+    var contexto = {
+      SpreadsheetApp: SpreadsheetApp,
+      DocumentApp: DocumentApp,
+      DriveApp: DriveApp,
+      FormApp: FormApp,
+      Utilities: Utilities,
+      Session: Session,
+      Logger: Logger,
+      dadosExtras: dadosExtras,
+      garantirPasta: garantirPastaHelper,
+      moverParaPasta: moverParaPastaHelper
+    };
+
+    // Preparar o script: injetar helpers e capturar resultado
+    var scriptWrapper =
+      "var SpreadsheetApp = contexto.SpreadsheetApp;" +
+      "var DocumentApp = contexto.DocumentApp;" +
+      "var DriveApp = contexto.DriveApp;" +
+      "var FormApp = contexto.FormApp;" +
+      "var Utilities = contexto.Utilities;" +
+      "var Session = contexto.Session;" +
+      "var Logger = contexto.Logger;" +
+      "var garantirPasta = contexto.garantirPasta;" +
+      "var moverParaPasta = contexto.moverParaPasta;" +
+      scriptCode +
+      "\n; return typeof resultado !== 'undefined' ? resultado : { success: false, error: 'Script não retornou resultado' };";
+
+    var fn = new Function("contexto", scriptWrapper);
+    var resultado = fn(contexto);
+
+    if (resultado && resultado.success && resultado.docUrl) {
+      registrarExecucao(resultado, dadosExtras);
+    }
+
+    return resultado || { success: false, error: "Nenhum resultado retornado" };
+
+  } catch (err) {
+    Logger.log("executarScriptMEA erro: " + err.toString());
+    return { success: false, error: err.toString() };
+  }
+}
+
+// ── REGISTRAR NO SHEETS ──────────────────────────────────
+function registrarExecucao(resultado, dados) {
+  try {
+    var ss = MEA_EXECUTOR_CONFIG.sheetId
+      ? SpreadsheetApp.openById(MEA_EXECUTOR_CONFIG.sheetId)
+      : SpreadsheetApp.getActiveSpreadsheet();
+
+    var tipo = dados.tipo || "Geral";
+    var abaMap = {
+      "Apostila": "Apostilas", "Guia": "Apostilas",
+      "Lista": "Listas", "Lista de Exercícios": "Listas",
+      "Questionário": "Questionários",
+      "Análise de Banca": "Análises", "Análise": "Análises"
+    };
+    var abaNome = abaMap[tipo] || "Listas";
+    var aba = ss.getSheetByName(abaNome);
+
+    if (!aba) {
+      aba = ss.insertSheet(abaNome);
+      var cabec = ["ID","Tipo","Matéria","Banca","Cargo","Assunto","Versão","Data","Link Drive","Status"];
+      aba.getRange(1,1,1,cabec.length).setValues([cabec])
+         .setBackground("#162B20").setFontColor("#C8A838").setFontWeight("bold");
+      aba.setFrozenRows(1);
+    }
+
+    var id = tipo.charAt(0) + new Date().getTime();
+    aba.appendRow([
+      id,
+      dados.tipo      || "Geral",
+      dados.materia   || "",
+      dados.banca     || "",
+      dados.cargo     || "",
+      dados.assunto   || "",
+      dados.versao    || "v1",
+      new Date().toLocaleDateString("pt-BR"),
+      resultado.docUrl || "",
+      "OK"
+    ]);
+
+    atualizarDashboardExecutor(ss);
+    Logger.log("Registrado: " + id + " | " + resultado.docUrl);
+
+  } catch (e) {
+    Logger.log("registrarExecucao erro: " + e.toString());
+  }
+}
+
+// ── DASHBOARD ────────────────────────────────────────────
+function atualizarDashboardExecutor(ss) {
+  try {
+    var dash = ss.getSheetByName("Dashboard");
+    if (!dash) { dash = ss.insertSheet("Dashboard"); }
+    var abas = ["Apostilas","Listas","Questionários","Análises"];
+    var rows = [["📊 DASHBOARD MEA","Atualizado: " + new Date().toLocaleString("pt-BR")]];
+    abas.forEach(function(a){
+      var sh = ss.getSheetByName(a);
+      rows.push([a, sh ? Math.max(0, sh.getLastRow()-1) : 0]);
+    });
+    dash.clearContents();
+    dash.getRange(1,1,rows.length,2).setValues(rows);
+    dash.getRange(1,1,1,2).setBackground("#162B20").setFontColor("#C8A838").setFontWeight("bold");
+  } catch(e) { Logger.log("Dashboard erro: "+e.toString()); }
+}
+
+// ── HELPERS DE PASTA ─────────────────────────────────────
+function garantirPastaHelper(caminho) {
+  var partes = (caminho||"").split("/").map(function(p){ return p.trim(); }).filter(Boolean);
+  var pasta = DriveApp.getRootFolder();
+  partes.forEach(function(p){
+    var it = pasta.getFoldersByName(p);
+    pasta = it.hasNext() ? it.next() : pasta.createFolder(p);
+  });
+  return pasta;
+}
+
+function moverParaPastaHelper(fileId, caminhoOuSubpasta) {
+  try {
+    var caminho = caminhoOuSubpasta.indexOf("/") !== -1
+      ? caminhoOuSubpasta
+      : MEA_EXECUTOR_CONFIG.pastaRaiz + "/" + caminhoOuSubpasta;
+    var pasta = garantirPastaHelper(caminho);
+    var file = DriveApp.getFileById(fileId);
+    pasta.addFile(file);
+    try {
+      var pais = file.getParents();
+      while (pais.hasNext()) {
+        var pai = pais.next();
+        if (pai.getId() !== pasta.getId()) pai.removeFile(file);
+      }
+    } catch(e) {}
+    Logger.log("Arquivo movido para: " + caminho);
+    return pasta.getUrl();
+  } catch(e) {
+    Logger.log("moverParaPasta erro: " + e.toString());
+    return "";
+  }
+}
+
+// ── SETUP INICIAL ────────────────────────────────────────
+function setupExecutor() {
+  var ui = SpreadsheetApp.getUi();
+  var token = ui.prompt("🔐 Defina um token de segurança:", "mea2025", ui.ButtonSet.OK_CANCEL);
+  if (token.getSelectedButton() !== ui.Button.OK) return;
+  var sheetId = SpreadsheetApp.getActiveSpreadsheet().getId();
+  var autor   = ui.prompt("👤 Seu nome:", "Candidato MEA", ui.ButtonSet.OK_CANCEL);
+
+  PropertiesService.getScriptProperties().setProperties({
+    MEA_TOKEN:    token.getResponseText() || "mea2025",
+    MEA_SHEET_ID: sheetId,
+    MEA_AUTOR:    autor.getSelectedButton() === ui.Button.OK ? autor.getResponseText() : "Candidato MEA"
+  });
+
+  // Criar pastas e abas
+  var pastas = ["Apostilas","Listas","Questionários","Análises"];
+  pastas.forEach(function(p){ garantirPastaHelper("Plataforma de Estudos MEA/" + p); });
+
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var abas = {
+    "Apostilas":     ["ID","Tipo","Matéria","Banca","Cargo","Assunto","Versão","Data","Link Drive","Status"],
+    "Listas":        ["ID","Tipo","Matéria","Banca","Cargo","Assunto","Versão","Data","Link Drive","Status"],
+    "Questionários": ["ID","Tipo","Matéria","Banca","Qtd","Data","PDF","Forms","Status"],
+    "Análises":      ["ID","Banca","Cargo","Matéria","Nível","Data","Link","Status"],
+    "Dashboard":     ["Aba","Total"]
+  };
+  Object.keys(abas).forEach(function(nome){
+    var sh = ss.getSheetByName(nome) || ss.insertSheet(nome);
+    if (sh.getLastRow() === 0) {
+      sh.getRange(1,1,1,abas[nome].length).setValues([abas[nome]])
+        .setBackground("#162B20").setFontColor("#C8A838").setFontWeight("bold");
+      sh.setFrozenRows(1);
+    }
+  });
+
+  ui.alert("✅ MEA Executor configurado!\n\nPróximo passo:\nImplantar → Nova implantação → Web App\n  Executar como: Eu\n  Quem acessa: Qualquer pessoa\n\nCopie a URL e cole na plataforma HTML.");
+}
+
+// ── MENU ─────────────────────────────────────────────────
+function onOpen() {
+  try {
+    SpreadsheetApp.getUi()
+      .createMenu("🎯 MEA Executor")
+      .addItem("⚙ Configurar Executor", "setupExecutor")
+      .addItem("📊 Atualizar Dashboard", function(){ atualizarDashboardExecutor(SpreadsheetApp.getActiveSpreadsheet()); })
+      .addToUi();
+  } catch(e) {}
+}</div>
+    </div>
+  </div>
+
+  <!-- RESULTADO DA EXECUÇÃO -->
+  <div id="ex-resultado" style="display:none;margin-top:1.4rem">
+    <div class="fblock" style="border-color:var(--green)">
+      <div class="fblock-title" style="color:var(--green)">✅ Documento Criado com Sucesso!</div>
+      <div class="frow c2">
+        <div class="field">
+          <label>Link do documento no Drive</label>
+          <div style="display:flex;gap:.6rem">
+            <input type="text" id="ex-doc-url" readonly style="flex:1;color:var(--forest-l);font-family:'Space Mono',monospace;font-size:.78rem">
+            <a id="ex-doc-link" href="#" target="_blank" class="btn btn-amber btn-sm">Abrir ↗</a>
+          </div>
+        </div>
+        <div class="field">
+          <label>Status do registro</label>
+          <div id="ex-reg-status" style="font-size:.82rem;color:var(--mid);padding:.6rem .8rem;background:var(--ivory);border:1.5px solid var(--ivory-3);border-radius:var(--r)">
+            Aguardando execução...
+          </div>
+        </div>
+      </div>
+      <div id="ex-resultado-msg" style="margin-top:.85rem;font-size:.85rem;color:var(--mid);font-family:'Space Mono',monospace;line-height:1.65;background:var(--forest);color:rgba(248,243,234,.85);padding:1rem 1.2rem;border-radius:var(--r);white-space:pre-wrap"></div>
+    </div>
+  </div>
+
+  <!-- ERRO -->
+  <div id="ex-erro" style="display:none;margin-top:1rem">
+    <div class="info err">
+      <strong>❌ Erro na execução</strong>
+      <span id="ex-erro-msg"></span>
+    </div>
+    <div class="info warn" style="margin-top:.6rem">
+      <strong>O que fazer</strong>
+      Se o Web App não está configurado: use o modo Manual (aba "Via Apps Script (manual)") — copie o script e execute diretamente no Apps Script. · Se o script tem erro de sintaxe: revise o código devolvido pela IA ou solicite uma nova versão.
+    </div>
+  </div>
+
+</div>
+
+</main>
+
+<!-- MODAL PROMPT PRONTO -->
+<div class="modal-bg" id="modal-ready" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Prompt</div>
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div style="margin-bottom:1rem"><button class="btn btn-outline btn-sm" onclick="copyEl('modal-content')">📋 Copiar</button></div>
+    <div class="prompt-box" id="modal-content"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  MEA PLATFORM — ENGINE JS
+//  AKE UFT-1.0 · Sem API keys · 100% manual + GAS
+// ════════════════════════════════════════════════════════
+
+// ── STORAGE ──────────────────────────────────────────────
+const DB = {
+  get(k){ try{ return JSON.parse(localStorage.getItem('mea_'+k)||'null') }catch{return null} },
+  set(k,v){ try{ localStorage.setItem('mea_'+k,JSON.stringify(v)) }catch{} }
+};
+
+let historico = DB.get('hist') || [];
+
+// ── NAVIGATION ────────────────────────────────────────────
+function nav(el, id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('p-'+id).classList.add('on');
+  if(el && el.classList) el.classList.add('on');
+}
+
+// ── TABS ──────────────────────────────────────────────────
+function switchTab(btn, targetId){
+  const bar = btn.parentElement;
+  bar.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');
+  const wrap = btn.closest('.panel')||btn.closest('.modal')||btn.closest('.fblock')||document.body;
+  const panel = wrap.querySelector('#'+targetId);
+  if(!panel) return;
+  panel.closest('.panel, .modal, .fblock, .prompt-wrap') 
+    && panel.parentElement.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('on'));
+  // fallback
+  document.querySelectorAll('#'+targetId).forEach(p=>{
+    p.closest('.panel') && p.closest('.panel').querySelectorAll(':scope > .tab-panel').forEach(x=>x.classList.remove('on'));
+  });
+  panel.classList.add('on');
+}
+
+// ── TOGGLE BUTTONS ────────────────────────────────────────
+function tg(btn, groupId){
+  document.querySelectorAll('#'+groupId+' .tg-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+}
+function tgVal(groupId){ const b=document.querySelector('#'+groupId+' .tg-btn.on'); return b?b.textContent.trim():'' }
+
+// ── NIVEL SELECTORS ───────────────────────────────────────
+function selectNivel(card, nivel){
+  document.querySelectorAll('#ap-nivel-grid .nivel-card').forEach(c=>c.classList.remove('on'));
+  card.classList.add('on');
+  const cf = document.getElementById('ap-concurso-fields');
+  if(nivel==='concurso'){ cf.classList.add('show') } else { cf.classList.remove('show') }
+  apBuild();
+}
+function selectNivelLs(card, nivel){
+  document.querySelectorAll('#ls-nivel-grid .nivel-card').forEach(c=>c.classList.remove('on'));
+  card.classList.add('on');
+  const cf = document.getElementById('ls-concurso-fields');
+  if(nivel==='concurso'){ cf.classList.add('show') } else { cf.classList.remove('show') }
+  lsBuild();
+}
+function getNivel(gridId){ const c=document.querySelector('#'+gridId+' .nivel-card.on'); return c?c.dataset.nivel:'concurso' }
+
+// ── QUIZ DEST TOGGLE ─────────────────────────────────────
+function qzToggleDest(){
+  const v = tgVal('qz-dest');
+  const fo = document.getElementById('qz-forms-opts');
+  const ar = document.getElementById('qz-analise-row');
+  if(v.includes('Forms')||v.includes('Ambos')){ fo.style.display='block'; ar.style.display='block' }
+  else { fo.style.display='none'; ar.style.display='none' }
+}
+
+// ── FILES ────────────────────────────────────────────────
+function handleFiles(evt, listId){
+  const list=document.getElementById(listId);
+  Array.from(evt.target.files).forEach(f=>{
+    const ch=document.createElement('div'); ch.className='fchip';
+    ch.innerHTML=`📄 ${f.name} <button onclick="this.parentElement.remove()">×</button>`;
+    list.appendChild(ch);
+  });
+}
+
+// ── COPY ─────────────────────────────────────────────────
+function copyEl(id){
+  const el=document.getElementById(id);
+  const text=el.innerText||el.textContent;
+  navigator.clipboard.writeText(text).then(()=>toast('Copiado!','ok')).catch(()=>{
+    const ta=document.createElement('textarea'); ta.value=text;
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    toast('Copiado!','ok');
+  });
+}
+
+// ── TOAST ────────────────────────────────────────────────
+function toast(msg, type=''){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='on '+(type||'');
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('on'),2800);
+}
+
+// ── BANCAS DATA ───────────────────────────────────────────
+const BANCAS = {
+  'CEBRASPE / CESPE': {
+    perfil:'BANCA CONCEITUAL-APLICATIVA. Avalia compreensão profunda, aplicação prática e interpretação rigorosa. Tipo de leitura: 60% conceitual + 40% interpretativa.',
+    pegadinhas:'35% das questões têm pegadinhas. Principais distratores: (1) Verdade parcial — 80% correto, 20% errado; (2) Conceito trocado — usa termo similar com significado diferente; (3) Aplicação indevida — conceito certo em contexto errado; (4) Legislação desatualizada — lei revogada ou alterada.',
+    gabarito:'Distribuição aproximada (5 alternativas): A=18%, B=22%, C=26%, D=20%, E=14%. Leve preferência por C.',
+    tempo:'90 segundos por questão. Máximo de 2min em questões difíceis.',
+    estrategia:'Sempre buscar a alternativa mais precisa e técnica. Cuidado com falsas verdades parciais. Verificar legislação citada.',
+    dist5:{A:18,B:22,C:26,D:20,E:14},
+    dist4:{A:22,B:26,C:32,D:20}
+  },
+  'CONSULPLAN': {
+    perfil:'BANCA COMPORTAMENTAL. Avalia atenção, contenção cognitiva e respeito ao enunciado. Monta provas por MICROSSISTEMAS TEXTUAIS (1 texto + 3-5 questões). Tipo de leitura: 80% literal + 20% inferencial restrita.',
+    pegadinhas:'41% das questões têm pegadinhas. Distratores: (1) Absolutização — termos como "sempre", "nunca", "todo", "exclusivamente"; (2) Extrapolação semântica — vai além do texto; (3) Troca de foco — responde algo parecido mas não o perguntado; (4) Redução indevida — ignora exceções ou condicionantes.',
+    gabarito:'Distribuição (4 alternativas): C=34%, B=26%, A=24%, D=16%.',
+    tempo:'110 segundos por questão média. 1min30s para diretas.',
+    estrategia:'Ler o texto inteiro antes das questões. Usar PEC (texto→comando→retorno). Desconfiar de "sempre" e "nunca". Alternativa correta: mais moderada e contida.',
+    dist5:{A:24,B:26,C:34,D:16,E:0},
+    dist4:{A:24,B:26,C:34,D:16}
+  },
+  'FCC': {
+    perfil:'BANCA JURÍDICO-LITERAL. Alta dependência de legislação, texto literal de leis. Menor complexidade interpretativa, maior necessidade de memorização.',
+    pegadinhas:'25% de pegadinhas. Distratores: (1) Troca de palavras na lei; (2) Artigo errado; (3) Prazo incorreto.',
+    gabarito:'Distribuição uniforme: cada alternativa ~20-22%.',
+    tempo:'80 segundos por questão.',
+    estrategia:'Conhecer o texto literal das leis cobradas. Atenção a prazos, percentuais e artigos específicos.',
+    dist5:{A:21,B:21,C:21,D:21,E:16},
+    dist4:{A:25,B:25,C:25,D:25}
+  },
+  'FGV': {
+    perfil:'BANCA ANALÍTICA. Raciocínio dedutivo, casos complexos, múltiplas dimensões por questão. Exige síntese de conceitos.',
+    pegadinhas:'30% de pegadinhas. Distratores sofisticados envolvendo múltiplos conceitos.',
+    gabarito:'Leve preferência por C e B.',
+    tempo:'120 segundos por questão.',
+    estrategia:'Decompor questões complexas. Identificar premissas antes de responder.',
+    dist5:{A:18,B:22,C:24,D:22,E:14},
+    dist4:{A:22,B:26,C:30,D:22}
+  },
+  'Marinha do Brasil': {
+    perfil:'BANCA TÉCNICA-APLICADA. Foco em aplicação prática em contextos militares e de engenharia. Questões contextualizadas. Cálculos frequentes.',
+    pegadinhas:'35% de pegadinhas. Distratores: cálculo induzido, troca de fórmula, unidade errada.',
+    gabarito:'Distribuição: B=30%, A=25%, C=25%, D=20%.',
+    tempo:'120 segundos por questão.',
+    estrategia:'Verificar unidades em cálculos. Ler enunciados com atenção a dados numéricos.',
+    dist5:{A:25,B:30,C:25,D:20,E:0},
+    dist4:{A:25,B:30,C:25,D:20}
+  }
+};
+
+function getBancaInfo(nome){ return BANCAS[nome] || {perfil:'Banca não catalogada. Use o módulo Análise de Banca para gerar o perfil via engenharia reversa.',pegadinhas:'Desconhecido.',gabarito:'Desconhecido.',tempo:'Desconhecido.',estrategia:'Execute análise empírica.',dist5:{A:20,B:20,C:20,D:20,E:20},dist4:{A:25,B:25,C:25,D:25}} }
+
+function distStr(banca, alts){
+  const b = getBancaInfo(banca);
+  const d = alts===5 ? b.dist5 : b.dist4;
+  return Object.entries(d).filter(([,v])=>v>0).map(([k,v])=>k+'='+v+'%').join(', ');
+}
+
+// ── PROMPT BUILDERS ───────────────────────────────────────
+
+// APOSTILA
+function apBuild(){
+  const nivel    = getNivel('ap-nivel-grid');
+  const materia  = v('ap-materia')  || '[MATÉRIA]';
+  const assunto  = v('ap-assunto')  || '[ASSUNTO]';
+  const banca    = v('ap-banca')    || '';
+  const cargo    = v('ap-cargo')    || '';
+  const orgao    = v('ap-orgao')    || '';
+  const ano      = v('ap-ano')      || '';
+  const topicos  = v('ap-topicos')  || '';
+  const biblio   = v('ap-biblio')   || '';
+  const analise  = v('ap-analise')  || '';
+  const ext      = v('ap-ext')      || 'padrao';
+  const resumos  = tgVal('ap-resumos').includes('✅');
+  const dicas    = tgVal('ap-dicas').includes('✅');
+  const simStr   = tgVal('ap-sim');
+  const alts     = tgVal('ap-alt').includes('5') ? 5 : 4;
+  const versao   = tgVal('ap-versao') || 'v1';
+
+  const extMap   = {compacta:'~15 páginas (compacta)',padrao:'~30 páginas (padrão)',completa:'~50+ páginas (completa)'};
+  const nivelMap = {fundamental:'Ensino Fundamental (6º–9º ano)',medio:'Ensino Médio (1º–3º ano)',superior:'Ensino Superior / Graduação',concurso:'Concurso Público'};
+
+  let bancaCtx = '';
+  if(nivel==='concurso' && banca){
+    const bi = getBancaInfo(banca);
+    bancaCtx = `
+════════════════════════════════════════════
+PERFIL COGNITIVO DA BANCA ${banca} (MEA)
+════════════════════════════════════════════
+${bi.perfil}
+
+PADRÃO DE PEGADINHAS:
+${bi.pegadinhas}
+
+DISTRIBUIÇÃO DE GABARITO DO SIMULADO:
+${distStr(banca,alts)}
+
+ESTRATÉGIA PRINCIPAL:
+${bi.estrategia}
+`;
+  }
+
+  let concursoCtx = '';
+  if(nivel==='concurso'){
+    concursoCtx = `
+DADOS DO CONCURSO:
+- Banca: ${banca||'[informar]'}
+- Cargo: ${cargo||'[informar]'}
+- Órgão: ${orgao||'não informado'}
+- Edição/Ano: ${ano||'não informado'}
+
+TÓPICOS DO EDITAL:
+${topicos || '[nenhum informado — use os assuntos da matéria]'}
+`;
+  }
+
+  let analiseCtx = analise ? `
+════════════════════════════════════════════
+RELATÓRIO DE ANÁLISE DA BANCA (INPUT)
+Este documento foi gerado pelo módulo de Análise de Banca e deve ser usado para
+calibrar o perfil cognitivo, distratores e estratégias desta apostila:
+${analise}
+════════════════════════════════════════════
+` : '';
+
+  let biblioCtx = biblio ? `
+BIBLIOGRAFIAS DE REFERÊNCIA:
+${biblio}
+` : '';
+
+  const prompt = `════════════════════════════════════════════════════════
+PROMPT MEA — GERAÇÃO DE APOSTILA DE ESTUDO
+AKE UFT-1.0 · Método Engenharia da Aprovação · ${versao.toUpperCase()}
+════════════════════════════════════════════════════════
+
+IDENTIDADE E PAPEL:
+Você é um especialista em didática, pedagogia aplicada ao nível ${nivelMap[nivel]},
+e preparação para ${nivel==='concurso'?'concursos públicos':'estudos acadêmicos'}.
+${nivel==='concurso'?`Você possui profundo conhecimento da banca ${banca||'[banca informada]'} e do Método MEA (Método Engenharia da Aprovação — AKE UFT-1.0).`:''}
+
+MISSÃO:
+Gere uma apostila de estudo COMPLETA, PROFISSIONAL e EFICAZ sobre a matéria e assunto
+indicados abaixo. O material deve ser adequado para ${nivelMap[nivel]}.
+
+MATÉRIA: ${materia}
+ASSUNTO PRINCIPAL: ${assunto}
+EXTENSÃO: ${extMap[ext]||extMap.padrao}
+${concursoCtx}
+════════════════════════════════════════════
+ESTRUTURA OBRIGATÓRIA DA APOSTILA (ABNT)
+════════════════════════════════════════════
+
+FORMATAÇÃO ABNT:
+- Margens: Superior 3cm, Inferior 2cm, Esquerda 3cm, Direita 2cm
+- Fonte: Times New Roman 12pt (corpo) / 14pt (títulos seção) / 16pt (título principal)
+- Espaçamento: 1,5 entre linhas; 6pt antes/depois de parágrafos
+- Recuo primeira linha: 1,25cm
+- Alinhamento: justificado
+- Numeração de páginas: canto inferior direito
+- Títulos: numerados (1. / 1.1 / 1.1.1), negrito
+- Citações diretas (>3 linhas): recuo 4cm, fonte 10pt
+
+ESTRUTURA DO DOCUMENTO:
+1. CAPA (Título, matéria, nível, banca/curso, autor, data)
+2. SUMÁRIO
+3. INTRODUÇÃO (objetivos da apostila, como usar)
+4. CONTEÚDO (todos os tópicos, conforme abaixo)
+5. ${simStr.includes('Sem')? 'REFERÊNCIAS BIBLIOGRÁFICAS' : 'SIMULADO / EXERCÍCIOS + REFERÊNCIAS BIBLIOGRÁFICAS'}
+
+════════════════════════════════════════════
+REGRAS DE CONTEÚDO
+════════════════════════════════════════════
+
+Para CADA tópico do assunto, estruture assim:
+1. CONCEITO — definição clara e objetiva
+2. CONTEXTO — onde e como se aplica${nivel==='concurso'?'\n3. LEGISLAÇÃO RELEVANTE — lei/decreto específico, com artigo e texto-chave':'\n3. EXEMPLOS PRÁTICOS — situações do cotidiano'}
+4. ${nivel==='concurso'?'PONTO DE PROVA — o que a banca cobra e como cobra':'ATIVIDADE PROPOSTA — questão ou exercício para fixação'}
+
+${resumos?`CAIXAS ESPECIAIS DE DESTAQUE (use ao longo do texto):
+
+📌 RESUMO PARA MEMORIZAÇÃO (cor verde #2E8B57, negrito):
+   Síntese em bullet points copiáveis, máximo 8 itens
+   Formato: "• [conceito chave] = [síntese direta]"
+   
+`:''}${dicas && nivel==='concurso'?`💡 DICA MEA (cor azul #1E4D8C, itálico):
+   Estratégia de prova específica para a banca após cada conceito importante
+   
+`:dicas?`💡 DICA DE ESTUDO (cor azul #1E4D8C):
+   Sugestão de método de memorização ou aplicação
+   
+`:''}${nivel==='concurso'?`⚠️ ATENÇÃO — PEGADINHA (cor vermelho #8B1A1A):
+   Armadilha frequente da banca para este tópico
+
+📜 NORMATIVO (quando aplicável):
+   Texto-chave da lei com termos críticos destacados
+
+`:''}${bancaCtx}${analiseCtx}${biblioCtx}${!simStr.includes('Sem')?`
+════════════════════════════════════════════
+SIMULADO FINAL
+════════════════════════════════════════════
+Inclua ao final da apostila um simulado com ${simStr.includes('25')?25:15} questões de múltipla escolha.
+
+REGRAS DO SIMULADO MEA:
+1. FORMATO: ${alts} alternativas (${alts===5?'A, B, C, D, E':'A, B, C, D'})
+2. DISTRIBUIÇÃO DO GABARITO: ${nivel==='concurso' && banca ? distStr(banca,alts) : alts===5?'A=20%, B=20%, C=22%, D=20%, E=18%':'A=25%, B=25%, C=25%, D=25%'}
+   → NUNCA concentre mais de 35% em uma única alternativa
+   → NUNCA deixe D ou E com menos de 10%
+3. DISTRATORES: cada alternativa errada erra por UMA palavra/detalhe (não por absurdo)
+4. ALTERNATIVA CORRETA: sempre a mais moderada e literal — nunca a mais "brilhante"
+5. ENUNCIADO: claro, sem induzir; pelo menos 20% com comando negativo (NÃO/EXCETO)
+6. GABARITO COMENTADO: ao final, para cada questão:
+   - Resposta correta
+   - Por que cada alternativa errada está errada (nome do distrator)
+   - Alerta reutilizável ("Cuidado com...")
+`:''}
+
+════════════════════════════════════════════
+ENTREGÁVEL ESPERADO
+════════════════════════════════════════════
+Um documento completo em Markdown estruturado, pronto para ser
+convertido em Google Docs / PDF. Use # para H1, ## para H2, ### para H3.
+Separe seções com linha horizontal (---).
+Ao final, inclua a lista de referências bibliográficas em formato ABNT.
+
+Data de geração: ${new Date().toLocaleDateString('pt-BR')}
+Versão: ${versao.toUpperCase()} | AKE UFT-1.0`;
+
+  document.getElementById('ap-prompt').textContent = prompt;
+  document.getElementById('ap-wrap').style.display = 'block';
+  toast('Prompt da apostila gerado!','ok');
+}
+
+// LISTA
+function lsBuild(){
+  const nivel    = getNivel('ls-nivel-grid');
+  const materia  = v('ls-materia')  || '[MATÉRIA]';
+  const assunto  = v('ls-assunto')  || '[ASSUNTO]';
+  const banca    = v('ls-banca')    || '';
+  const cargo    = v('ls-cargo')    || '';
+  const topicos  = v('ls-topicos')  || '';
+  const analise  = v('ls-analise')  || '';
+  const guia     = v('ls-guia')     || '';
+  const qtd      = v('ls-qtd')      || '25';
+  const alts     = tgVal('ls-alt').includes('5') ? 5 : 4;
+  const versao   = tgVal('ls-versao') || 'v1';
+  const estilo   = tgVal('ls-estilo') || 'Conteudista';
+  const dif      = tgVal('ls-dif')    || '3';
+  const gab      = tgVal('ls-gab')    || 'Completo + Armadilhas';
+
+  const nivelMap = {fundamental:'Ensino Fundamental',medio:'Ensino Médio',superior:'Ensino Superior',concurso:'Concurso Público'};
+  const bi = nivel==='concurso' && banca ? getBancaInfo(banca) : null;
+
+  const dist = bi ? distStr(banca,alts) : alts===5?'A=20%, B=20%, C=22%, D=20%, E=18%':'A=25%, B=25%, C=25%, D=25%';
+
+  let bancaCtx = bi ? `
+PERFIL DA BANCA ${banca} (MEA):
+- Perfil: ${bi.perfil}
+- Pegadinhas dominantes: ${bi.pegadinhas}
+- Estratégia da banca: ${bi.estrategia}
+` : '';
+
+  let analiseCtx = analise ? `
+RELATÓRIO DE ANÁLISE DA BANCA (use para calibrar distratores e distribuição):
+${analise}
+` : '';
+
+  let guiaCtx = guia ? `
+APOSTILA DE REFERÊNCIA (calibre as questões a este conteúdo — não invente fora dele):
+${guia}
+` : '';
+
+  let concursoCtx = nivel==='concurso' ? `
+BANCA: ${banca||'[informar]'}
+CARGO: ${cargo||'[informar]'}
+TÓPICOS DO EDITAL A COBRIR:
+${topicos||'[nenhum informado — cubra os assuntos da matéria]'}
+` : '';
+
+  const prompt = `════════════════════════════════════════════════════════
+PROMPT MEA — GERAÇÃO DE LISTA DE EXERCÍCIOS
+AKE UFT-1.0 · Método Engenharia da Aprovação · ${versao.toUpperCase()}
+════════════════════════════════════════════════════════
+
+IDENTIDADE E PAPEL:
+Você é especialista em construção de questões para ${nivelMap[nivel]}.
+${nivel==='concurso'?`Você possui profundo conhecimento dos padrões de cobrança da banca ${banca||'[indicada]'} e do Método MEA.`:'Você cria questões didáticas adequadas ao nível indicado.'}
+
+MISSÃO:
+Gere uma lista de ${qtd} questões de múltipla escolha sobre:
+MATÉRIA: ${materia}
+ASSUNTO: ${assunto}
+NÍVEL: ${nivelMap[nivel]}
+ESTILO MEA: ${estilo}
+DIFICULDADE MÉDIA: ${dif}/5
+${concursoCtx}
+════════════════════════════════════════════
+REGRAS INEGOCIÁVEIS DO MÉTODO MEA
+════════════════════════════════════════════
+
+1. FORMATO:
+   - ${alts} alternativas: ${alts===5?'A, B, C, D, E':'A, B, C, D'}
+   - Numeração: QUESTÃO 01, QUESTÃO 02, etc.
+   - Campo para resposta: "Minha resposta: ___  Tempo gasto: ___  Dificuldade percebida: ___"
+
+2. DISTRIBUIÇÃO DO GABARITO (OBRIGATÓRIO):
+   ${dist}
+   → NUNCA concentre mais de 35% em uma alternativa
+   → NUNCA zere qualquer alternativa (no mínimo 8%)
+   → Distribua questões difíceis com gabaritos variados
+   → A distribuição é calculada sobre o total de ${qtd} questões
+
+3. DISTRATORES (cada questão):
+   - A alternativa errada erra por UMA palavra, um detalhe, uma intensificação
+   - NUNCA crie alternativas absurdamente erradas
+   - Tipos obrigatórios por questão:
+     a) Uma alternativa "quase correta" (90% certa, 10% errada)
+     b) Uma alternativa correta em outro contexto mas não neste
+     c) Uma alternativa com absolutização indevida (sempre/nunca/todo)
+     d) Uma alternativa que responde outra pergunta
+   ${nivel==='concurso'?`
+   DISTRATORES ESPECÍFICOS DA BANCA ${banca||''}:
+   ${bi ? bi.pegadinhas : 'Ver relatório de análise abaixo'}
+   ` : ''}
+
+4. ALTERNATIVA CORRETA:
+   - Sempre a mais moderada, contida e literal
+   - NUNCA a mais elegante, criativa ou brilhante
+   - Deve poder ser encontrada textualmente no conteúdo
+   - Usa "pode", "tende", "em geral" — nunca "sempre" ou "todo"
+
+5. ENUNCIADOS:
+   - Claros, sem induzir
+   - Pelo menos 20% com comando negativo: "NÃO se inclui:", "EXCETO:", "É INCORRETO afirmar:"
+   - Cada questão testa um único conceito (não vários ao mesmo tempo)
+   - Progressão de dificuldade: questões 1–${Math.floor(parseInt(qtd)*0.4)} (fáceis) → ${Math.floor(parseInt(qtd)*0.4)+1}–${Math.floor(parseInt(qtd)*0.75)} (médias) → ${Math.floor(parseInt(qtd)*0.75)+1}–${qtd} (difíceis)
+
+6. ABNT:
+   - Português formal, sem abreviações informais
+   - Termos técnicos conforme a legislação/literatura da área
+${bancaCtx}${analiseCtx}${guiaCtx}
+════════════════════════════════════════════
+CHECKLIST MEA POR QUESTÃO (verifique cada uma):
+□ Um candidato que sabe o conteúdo pode errar por leitura apressada?
+□ A alternativa errada parece defensável?
+□ A alternativa correta é a mais contida (não a mais "inteligente")?
+□ O enunciado não induz explicitamente?
+□ O gabarito desta questão está alinhado com a distribuição definida?
+Se qualquer resposta for "não" → refaça a questão.
+
+════════════════════════════════════════════
+GABARITO COMENTADO (ao final da lista)
+════════════════════════════════════════════
+Para cada questão, forneça:
+${gab.includes('Completo') ? `1. RESPOSTA CORRETA: alternativa [X]
+2. POR QUE CADA ERRADA ESTÁ ERRADA:
+   - Alt [Y]: [nome do distrator — ex.: "absolutização"] — [explicação]
+   - Alt [Z]: [nome do distrator] — [explicação]
+3. ALERTA REUTILIZÁVEL: "Cuidado com..."
+4. DIFICULDADE: [N]/5 | TEMA: [subtópico]` : `1. RESPOSTA CORRETA: alternativa [X]
+2. EXPLICAÇÃO RESUMIDA: [1-2 linhas]`}
+
+════════════════════════════════════════════
+ENTREGÁVEL
+════════════════════════════════════════════
+Documento Markdown com:
+- Cabeçalho com dados da lista
+- ${qtd} questões numeradas com campos de resposta
+- Gabarito comentado após quebra de página
+- Estatísticas: distribuição real do gabarito, dificuldade média, temas cobertos
+
+Data: ${new Date().toLocaleDateString('pt-BR')} | Versão: ${versao.toUpperCase()} | AKE UFT-1.0`;
+
+  document.getElementById('ls-prompt').textContent = prompt;
+  document.getElementById('ls-wrap').style.display = 'block';
+  toast('Prompt da lista gerado!','ok');
+}
+
+// QUESTIONÁRIO
+function qzBuild(){
+  const materia = v('qz-materia') || '[MATÉRIA]';
+  const banca   = v('qz-banca')   || 'Geral';
+  const qtd     = v('qz-qtd')     || '20';
+  const dif     = tgVal('qz-dif') || 'Mista';
+  const alts    = tgVal('qz-alt').includes('5') ? 5 : 4;
+  const dest    = tgVal('qz-dest') || 'PDF';
+  const isQuiz  = tgVal('qz-quiz-mode')||'';
+  const analise = tgVal('qz-analise')||'';
+
+  const prompt = `════════════════════════════════════════════════════════
+PROMPT MEA — GERAÇÃO DE QUESTIONÁRIO DE DESEMPENHO
+AKE UFT-1.0 · ${new Date().toLocaleDateString('pt-BR')}
+════════════════════════════════════════════════════════
+
+MISSÃO:
+Gere um questionário de desempenho com ${qtd} questões sobre:
+MATÉRIA/ASSUNTO: ${materia}
+REFERÊNCIA: ${banca}
+DIFICULDADE: ${dif}
+FORMATO: ${alts} alternativas (${alts===5?'A–E':'A–D'})
+DESTINO: ${dest}
+
+════════════════════════════════════════════
+ESTRUTURA DO QUESTIONÁRIO
+════════════════════════════════════════════
+
+CABEÇALHO (para cada questão):
+- Número: QUESTÃO [N]
+- Tema: [subtópico específico]
+- Dificuldade: [1–5]
+- Tipo: [conceitual/aplicação/legislação/cálculo]
+
+CORPO: enunciado + ${alts} alternativas
+
+CAMPO DE RESPOSTA (para versão PDF):
+"Resposta: ___ | Tempo: ___ | Confiança: □Alta □Média □Baixa"
+
+REGRAS DE DISTRIBUIÇÃO:
+- Cobrir pelo menos ${Math.ceil(parseInt(qtd)/5)} temas diferentes
+- Dificuldade progressiva
+- Distribuição de gabarito equilibrada (nenhuma letra > 30%)
+${analise.includes('✅') ? `
+════════════════════════════════════════════
+ANÁLISE DE DESEMPENHO (inclua ao final)
+════════════════════════════════════════════
+Após o gabarito, forneça:
+
+1. TABELA DE DESEMPENHO POR TEMA:
+   | Tema | Questões | % Esperado de Acerto |
+   Para cada tema coberto
+
+2. DIAGNÓSTICO:
+   - Se acertou ≥80%: "Domínio consolidado. Avance para questões nível 4-5."
+   - Se acertou 60–79%: "Em desenvolvimento. Revise [tópicos específicos]."
+   - Se acertou <60%: "Reforço necessário. Retorne à apostila, seção [X]."
+
+3. RECOMENDAÇÕES:
+   - Tópicos para revisar (com seção da apostila)
+   - Próximos passos de estudo
+   - Tipo de lista indicada (Lista de Risco / Conteudista / Híbrida)
+` : ''}
+
+GABARITO COMENTADO:
+Para cada questão: resposta correta + por que cada errada está errada (1 linha por alternativa).
+
+════════════════════════════════════════════
+ENTREGÁVEL ESPERADO
+════════════════════════════════════════════
+Formato Markdown estruturado.
+${dest.includes('Forms') || dest.includes('Ambos') ? `
+Para Google Forms, forneça TAMBÉM em formato JSON estruturado:
+{
+  "titulo": "Questionário - [matéria]",
+  "questoes": [
+    {
+      "numero": 1,
+      "tema": "[tema]",
+      "enunciado": "[enunciado]",
+      "alternativas": {"A":"...","B":"...","C":"...","D":"..."},
+      "correta": "X",
+      "explicacao": "[1 linha]"
+    }
+  ]
+}
+` : ''}`;
+
+  const gasCode = buildQzGAS(materia, banca, qtd, alts, dest, isQuiz, analise);
+
+  document.getElementById('qz-prompt').textContent = prompt;
+  document.getElementById('qz-gas').textContent = gasCode;
+  document.getElementById('qz-wrap').style.display = 'block';
+  toast('Prompt do questionário gerado!','ok');
+}
+
+function buildQzGAS(materia, banca, qtd, alts, dest, isQuiz, analise){
+  return `// ════════════════════════════════════════════════════════
+// MEA · Script Questionário · ${materia}
+// Cole as questões no array QUESTOES abaixo após obter da IA
+// Execute createQuiz() para gerar PDF e/ou Forms
+// ════════════════════════════════════════════════════════
+
+// ── COLE AS QUESTÕES AQUI (obtenha da IA com o prompt acima) ──
+var QUESTOES = [
+  // Exemplo de formato esperado:
+  // {
+  //   numero: 1, tema: "PSA", dificuldade: 3,
+  //   enunciado: "O princípio da adicionalidade no PSA significa que...",
+  //   alternativas: {A:"...",B:"...",C:"...",D:"...",E:"..."},
+  //   correta: "A",
+  //   explicacao: "Adicionalidade: ação além da obrigação legal."
+  // },
+];
+
+var CONFIG = {
+  materia:   "${materia}",
+  banca:     "${banca}",
+  qtd:       ${qtd},
+  alts:      ${alts},
+  destino:   "${dest}",
+  isQuiz:    ${isQuiz.includes('Quiz')},
+  analise:   ${analise.includes('✅')},
+  pastaRaiz: "Plataforma de Estudos MEA",
+  autor:     PropertiesService.getScriptProperties().getProperty("MEA_AUTOR") || "Candidato MEA"
+};
+
+function createQuiz(){
+  if(!QUESTOES || QUESTOES.length === 0){
+    SpreadsheetApp.getUi().alert("⚠️ Nenhuma questão encontrada! Preencha o array QUESTOES acima com as questões obtidas da IA.");
+    return;
+  }
+  var resultados = {};
+  if(CONFIG.destino.includes("PDF") || CONFIG.destino.includes("Ambos")){
+    var docUrl = criarPDF();
+    resultados.pdf = docUrl;
+  }
+  if(CONFIG.destino.includes("Forms") || CONFIG.destino.includes("Ambos")){
+    var formUrl = criarForms();
+    resultados.forms = formUrl;
+  }
+  registrarNaAba(resultados);
+  var msg = "✅ Questionário criado!\\n";
+  if(resultados.pdf)   msg += "\\n📄 PDF: " + resultados.pdf;
+  if(resultados.forms) msg += "\\n📋 Forms: " + resultados.forms;
+  SpreadsheetApp.getUi().alert(msg);
+}
+
+function criarPDF(){
+  var hoje = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm");
+  var titulo = "📝 Questionário MEA · " + CONFIG.materia + " · " + hoje;
+  var doc = DocumentApp.create(titulo);
+  var body = doc.getBody();
+  var base = {}; base[DocumentApp.Attribute.FONT_FAMILY]="Times New Roman"; base[DocumentApp.Attribute.FONT_SIZE]=12;
+
+  // CAPA
+  var h = body.appendParagraph("QUESTIONÁRIO DE DESEMPENHO MEA");
+  h.setHeading(DocumentApp.ParagraphHeading.TITLE);
+  body.appendParagraph(CONFIG.materia).setAttributes(base).setBold(true);
+  body.appendParagraph("Banca/Referência: " + CONFIG.banca + " | Data: " + hoje).setAttributes(base);
+  body.appendParagraph("Autor: " + CONFIG.autor + " | AKE UFT-1.0").setAttributes(base);
+  body.appendParagraph("─".repeat(80)).setAttributes(base);
+  body.appendParagraph("");
+
+  // INSTRUÇÕES
+  body.appendParagraph("INSTRUÇÕES: Responda cada questão e registre seu tempo. Ao terminar, consulte o gabarito.").setItalic(true).setAttributes(base);
+  body.appendParagraph("");
+
+  // QUESTÕES
+  var altsKeys = CONFIG.alts === 5 ? ["A","B","C","D","E"] : ["A","B","C","D"];
+  QUESTOES.forEach(function(q, i){
+    var pQ = body.appendParagraph("QUESTÃO " + (i+1) + " [" + (q.tema||"") + "] — Dificuldade: " + (q.dificuldade||3) + "/5");
+    pQ.setBold(true).setAttributes(base);
+    body.appendParagraph(q.enunciado||"").setAttributes(base);
+    altsKeys.forEach(function(a){
+      if(q.alternativas && q.alternativas[a]) body.appendParagraph(a + ") " + q.alternativas[a]).setAttributes(base);
+    });
+    body.appendParagraph("Resposta: _____   Tempo: _____   Confiança: □Alta □Média □Baixa").setItalic(true).setAttributes(base);
+    body.appendParagraph("").setAttributes(base);
+  });
+
+  // GABARITO
+  body.appendPageBreak();
+  body.appendParagraph("GABARITO COMENTADO").setHeading(DocumentApp.ParagraphHeading.HEADING1).setAttributes(base);
+  body.appendParagraph("").setAttributes(base);
+  QUESTOES.forEach(function(q, i){
+    body.appendParagraph("Q" + (i+1) + " — ✅ " + (q.correta||"?")).setBold(true).setAttributes(base);
+    if(q.explicacao) body.appendParagraph(q.explicacao).setAttributes(base);
+    body.appendParagraph("").setAttributes(base);
+  });
+
+  doc.saveAndClose();
+  var pasta = garantirPasta(CONFIG.pastaRaiz + "/Questionários");
+  pasta.addFile(DriveApp.getFileById(doc.getId()));
+  try{ DriveApp.getRootFolder().removeFile(DriveApp.getFileById(doc.getId())); }catch(e){}
+  return doc.getUrl();
+}
+
+function criarForms(){
+  var hoje = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy");
+  var titulo = "Questionário MEA · " + CONFIG.materia + " · " + hoje;
+  var form = FormApp.create(titulo);
+  form.setDescription("Questionário gerado pelo Método MEA (AKE UFT-1.0) · " + CONFIG.banca);
+  form.setIsQuiz(CONFIG.isQuiz);
+  form.setShuffleQuestions(false);
+
+  var altsKeys = CONFIG.alts === 5 ? ["A","B","C","D","E"] : ["A","B","C","D"];
+
+  QUESTOES.forEach(function(q, i){
+    var item = form.addMultipleChoiceItem();
+    item.setTitle("Q" + (i+1) + (q.tema?" ["+q.tema+"]":"") + ": " + (q.enunciado||""));
+    item.setRequired(true);
+    var choices = altsKeys
+      .filter(function(a){ return q.alternativas && q.alternativas[a]; })
+      .map(function(a){
+        var text = a + ") " + q.alternativas[a];
+        if(CONFIG.isQuiz && a === q.correta){
+          return item.createChoice(text, true);
+        }
+        return item.createChoice(text, false);
+      });
+    item.setChoices(choices);
+    if(CONFIG.isQuiz) item.setPoints(1);
+  });
+  ${analise.includes('✅') ? `
+  // SEÇÃO DE ANÁLISE DE DESEMPENHO
+  form.addPageBreakItem().setTitle("Análise de Desempenho");
+  form.addTextItem().setTitle("Qual tema você sentiu maior dificuldade?").setRequired(false);
+  form.addTextItem().setTitle("Tempo total gasto (minutos):").setRequired(false);
+  var escala = form.addScaleItem();
+  escala.setTitle("Como você avalia sua preparação atual neste assunto?").setBounds(1,5).setLabels("1 - Muito fraco","5 - Excelente").setRequired(false);
+  ` : ''}
+  return form.getPublishedUrl();
+}
+
+function registrarNaAba(resultados){
+  try{
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var aba = ss.getSheetByName("Questionários") || ss.insertSheet("Questionários");
+    if(aba.getLastRow() === 0){
+      aba.getRange(1,1,1,7).setValues([["ID","Matéria","Banca","Qtd Questões","Data","PDF","Forms"]]);
+      aba.getRange(1,1,1,7).setFontWeight("bold").setBackground("#1A3326").setFontColor("#C9A93E");
+    }
+    aba.appendRow([
+      "Q"+new Date().getTime(), CONFIG.materia, CONFIG.banca, QUESTOES.length,
+      new Date().toLocaleDateString("pt-BR"),
+      resultados.pdf||"", resultados.forms||""
+    ]);
+  }catch(e){ Logger.log("Erro ao registrar: "+e.toString()); }
+}
+
+function garantirPasta(caminho){
+  var partes = caminho.split("/");
+  var pasta = DriveApp.getRootFolder();
+  partes.forEach(function(p){
+    var it = pasta.getFoldersByName(p);
+    pasta = it.hasNext() ? it.next() : pasta.createFolder(p);
+  });
+  return pasta;
+}`;
+}
+
+// ANÁLISE DE BANCA
+function anBuild(){
+  const banca   = v('an-banca')   || '[BANCA]';
+  const cargo   = v('an-cargo')   || '[CARGO]';
+  const materia = v('an-materia') || '[MATÉRIA]';
+  const nProvas = v('an-nprovas') || '5';
+  const foco    = tgVal('an-foco') || 'Completo (8 fases)';
+  const edital  = v('an-edital')  || '';
+  const obs     = v('an-obs')     || '';
+
+  const prompt = `════════════════════════════════════════════════════════
+PROMPT MEA — ANÁLISE DE BANCA (ENGENHARIA REVERSA)
+AKE UFT-1.0 · Framework Universal MEA · ${foco}
+════════════════════════════════════════════════════════
+
+IDENTIDADE E PAPEL:
+Você é um analista especializado em engenharia reversa de bancas examinadoras,
+utilizando o Método MEA (AKE UFT-1.0) — Framework Universal de 8 Fases.
+Sua análise transforma provas brutas em sistemas cognitivos decodificados.
+
+MISSÃO:
+Analise as provas e gabaritos que estou fornecendo junto a este prompt e produza
+um RELATÓRIO COMPLETO DE PERFIL COGNITIVO para:
+BANCA: ${banca}
+CARGO/ÁREA: ${cargo}
+MATÉRIA/DISCIPLINA: ${materia}
+BASE DE ANÁLISE: ${nProvas} provas fornecidas em anexo
+${edital ? `\nCONTEÚDO PROGRAMÁTICO DO EDITAL:\n${edital}` : ''}
+${obs ? `\nOBSERVAÇÕES DO CANDIDATO:\n${obs}` : ''}
+
+════════════════════════════════════════════════════════
+ESTRUTURA DO RELATÓRIO — 8 FASES MEA
+════════════════════════════════════════════════════════
+
+⟨FASE 1 — PERFIL COGNITIVO⟩
+Responda com dados quantitativos baseados nas provas analisadas:
+- Tipo de leitura exigida: [% literal] / [% inferencial] / [% analítica]
+- Nível de atenção requerido: [1-5] — justifique
+- Grau de contenção cognitiva: [1-5] — o quanto o candidato NÃO deve extrapolar
+- Margem de inferência autorizada: [restrita/moderada/ampla] — com exemplos
+- Postura ideal do candidato: [fiscal/estudioso/analista] — justifique
+- Top 5 vieses cognitivos explorados pela banca (com percentual)
+${foco.includes('Completo') ? `
+⟨FASE 2 — ANATOMIA DA PROVA⟩
+- Questões isoladas vs. blocos textuais: [% de cada]
+- Média de questões por texto/bloco
+- Progressão de dificuldade: [crescente/decrescente/aleatória/temática]
+- Tempo implícito por questão: [X segundos] — como calcular
+- Distribuição estatística do gabarito: A=[%], B=[%], C=[%], D=[%], E=[%]
+- Distribuição temática do edital: [tabela com tópicos e % de cobrança]
+` : ''}
+⟨FASE 3 — MAPA DE DISTRATORES⟩
+Para cada categoria, forneça: frequência (%), 2 exemplos reais das provas, e estratégia de eliminação:
+
+| Categoria | Frequência | Mecanismo | Como eliminar |
+|---|---|---|---|
+| Absolutização indevida | [%] | Usa "sempre/nunca/todo" | Desconfiar de termos categóricos |
+| Extrapolação semântica | [%] | Vai além do texto | Verificar autorização textual |
+| Troca de foco | [%] | Responde outra pergunta | Reler o comando |
+| Redução indevida | [%] | Ignora exceções | Buscar condicionantes |
+| [outros identificados] | [%] | ... | ... |
+
+⟨FASE 4 — ANÁLISE DOS COMANDOS⟩
+- Verbos críticos e seu peso decisório (lista dos mais frequentes)
+- % de questões com comando negativo (EXCETO/NÃO/INCORRETO)
+- Padrão de formulação dos enunciados (estrutura típica)
+- Armadilhas nos comandos (exemplos)
+${foco.includes('Completo') ? `
+⟨FASE 5 — ENGENHARIA REVERSA DO ERRO⟩
+Top 5 erros estruturais dos candidatos nesta banca:
+| Erro | Causa cognitiva | Padrão explorado | Intervenção |
+|---|---|---|---|
+| ... | ... | ... | ... |
+` : ''}
+⟨FASE 6 — ESTRATÉGIAS DE PROVA⟩
+Protocolo específico para ${banca}:
+1. SEQUÊNCIA DE LEITURA: (passo a passo otimizado)
+2. GESTÃO TEMPORAL: (cronograma em minutos para prova típica)
+3. ALGORITMO DE ELIMINAÇÃO: (ordem de verificação das alternativas)
+4. PROTOCOLO DE DÚVIDA: (o que fazer quando não sabe)
+5. CHUTE INTELIGENTE: (baseado na distribuição real do gabarito)
+${foco.includes('Completo') ? `
+⟨FASE 7 — VALIDAÇÃO CRUZADA⟩
+- Padrões que se repetem em >70% das provas analisadas
+- Padrões inconsistentes (<50%) — não usar como regra
+- Exceções identificadas — quando as regras não se aplicam
+- Acurácia preditiva estimada: [X%] de previsão correta
+` : ''}
+⟨FASE 8 — RECOMENDAÇÕES⟩
+1. CHECKLIST para apostila de estudo desta banca (o que DEVE ter)
+2. TIPOS DE QUESTÕES a priorizar na lista de exercícios
+3. ALERTAS DE PEGADINHA mais frequentes (top 5 com exemplos)
+4. PROMPT PADRÃO para análise de futuras provas desta banca
+
+════════════════════════════════════════════════════════
+ENTREGÁVEL ESPERADO
+════════════════════════════════════════════════════════
+Um documento Markdown completo com:
+- Todas as 8 fases preenchidas com dados das provas analisadas
+- Tabelas onde indicado
+- Exemplos reais extraídos das provas (com número da questão quando possível)
+- Seção final: "DOCUMENTO DE PERFIL DA BANCA" (resumo executivo de 1 página)
+  → Este documento será inserido nos módulos Apostila e Lista para calibração
+
+IMPORTANTE: Baseie TODA análise nas provas fornecidas. Não invente padrões.
+Se um padrão aparecer em menos de 2 provas, sinalize como "inconclusivo".
+
+Data: ${new Date().toLocaleDateString('pt-BR')} | AKE UFT-1.0`;
+
+  document.getElementById('an-prompt').textContent = prompt;
+  document.getElementById('an-wrap').style.display = 'block';
+  toast('Prompt de análise gerado!','ok');
+}
+
+// GAS BACKEND
+function gasBuild(){
+  const autor = v('gas-autor') || 'Candidato MEA';
+  const pasta = v('gas-pasta') || 'Plataforma de Estudos MEA';
+  const sheet = v('gas-sheet') || '';
+  const email = v('gas-email') || '';
+
+  const code = `// ════════════════════════════════════════════════════════
+// MEA BACKEND · Google Apps Script · AKE UFT-1.0
+// Autor: ${autor}
+// Pasta raiz: ${pasta}
+// Execute setupMEA() para configurar tudo pela primeira vez
+// ════════════════════════════════════════════════════════
+
+var MEA_CONFIG = {
+  autor:     "${autor}",
+  pastaRaiz: "${pasta}",
+  sheetId:   "${sheet || 'SUBSTITUA_PELO_ID_DO_SEU_SHEETS'}",
+  email:     "${email}"
+};
+
+// ── SETUP INICIAL (execute uma vez) ─────────────────────
+function setupMEA(){
+  criarAbasSheets();
+  criarPastasDrive();
+  PropertiesService.getScriptProperties().setProperty("MEA_AUTOR", MEA_CONFIG.autor);
+  PropertiesService.getScriptProperties().setProperty("MEA_PASTA", MEA_CONFIG.pastaRaiz);
+  SpreadsheetApp.getUi().alert(
+    "✅ MEA configurado com sucesso!\\n\\n" +
+    "Pastas criadas no Drive: " + MEA_CONFIG.pastaRaiz + "\\n" +
+    "Abas criadas no Sheets:\\n" +
+    "  • Apostilas\\n  • Listas\\n  • Questionários\\n  • Análises\\n  • Dashboard"
+  );
+}
+
+// ── CRIAR ABAS DO SHEETS ────────────────────────────────
+function criarAbasSheets(){
+  var ss = SpreadsheetApp.openById(MEA_CONFIG.sheetId);
+  var abas = [
+    { nome:"Apostilas",     cabec:["ID","Matéria","Banca","Cargo","Órgão","Concurso","Nível","Versão","Data","Link Drive","Status"] },
+    { nome:"Listas",        cabec:["ID","Matéria","Banca","Cargo","Assunto","Qtd Questões","Versão","Data","Link Drive","Status"] },
+    { nome:"Questionários", cabec:["ID","Matéria","Banca/Nível","Qtd","Data","PDF","Forms","Status"] },
+    { nome:"Análises",      cabec:["ID","Banca","Cargo","Matéria","Nível (provas)","Data","Link","Status"] },
+    { nome:"Dashboard",     cabec:["Métr.","Valor"] }
+  ];
+  abas.forEach(function(a){
+    var sh = ss.getSheetByName(a.nome);
+    if(!sh){ sh = ss.insertSheet(a.nome); }
+    if(sh.getLastRow() === 0){
+      sh.getRange(1,1,1,a.cabec.length).setValues([a.cabec]);
+      sh.getRange(1,1,1,a.cabec.length)
+        .setBackground("#1A3326").setFontColor("#C9A93E")
+        .setFontWeight("bold").setFontFamily("Space Mono");
+      sh.setFrozenRows(1);
+      a.cabec.forEach(function(_,i){ sh.setColumnWidth(i+1,160); });
+    }
+  });
+  Logger.log("Abas configuradas.");
+}
+
+// ── CRIAR PASTAS NO DRIVE ───────────────────────────────
+function criarPastasDrive(){
+  var subpastas = ["Apostilas","Listas","Questionários","Análises"];
+  subpastas.forEach(function(sub){
+    garantirPasta(MEA_CONFIG.pastaRaiz + "/" + sub);
+  });
+  Logger.log("Pastas criadas em: " + MEA_CONFIG.pastaRaiz);
+}
+
+// ── REGISTRAR APOSTILA ──────────────────────────────────
+function registrarApostila(dados){
+  // dados = {materia, banca, cargo, orgao, concurso, nivel, versao, linkDrive}
+  var ss = SpreadsheetApp.openById(MEA_CONFIG.sheetId);
+  var sh = ss.getSheetByName("Apostilas");
+  if(!sh) criarAbasSheets();
+  sh = ss.getSheetByName("Apostilas");
+  var id = "AP" + new Date().getTime();
+  var hoje = new Date().toLocaleDateString("pt-BR");
+  sh.appendRow([
+    id,
+    dados.materia     || "",
+    dados.banca       || "",
+    dados.cargo       || "",
+    dados.orgao       || "",
+    dados.concurso    || "",
+    dados.nivel       || "",
+    dados.versao      || "v1",
+    hoje,
+    dados.linkDrive   || "",
+    "OK"
+  ]);
+  atualizarDashboard();
+  Logger.log("Apostila registrada: " + id);
+  return id;
+}
+
+// ── REGISTRAR LISTA ─────────────────────────────────────
+function registrarLista(dados){
+  var ss = SpreadsheetApp.openById(MEA_CONFIG.sheetId);
+  var sh = ss.getSheetByName("Listas");
+  if(!sh) criarAbasSheets();
+  sh = ss.getSheetByName("Listas");
+  var id = "LS" + new Date().getTime();
+  sh.appendRow([
+    id,
+    dados.materia     || "",
+    dados.banca       || "",
+    dados.cargo       || "",
+    dados.assunto     || "",
+    dados.qtd         || "",
+    dados.versao      || "v1",
+    new Date().toLocaleDateString("pt-BR"),
+    dados.linkDrive   || "",
+    "OK"
+  ]);
+  atualizarDashboard();
+  Logger.log("Lista registrada: " + id);
+  return id;
+}
+
+// ── REGISTRAR ANÁLISE ───────────────────────────────────
+function registrarAnalise(dados){
+  var ss = SpreadsheetApp.openById(MEA_CONFIG.sheetId);
+  var sh = ss.getSheetByName("Análises");
+  if(!sh) criarAbasSheets();
+  sh = ss.getSheetByName("Análises");
+  var id = "AN" + new Date().getTime();
+  sh.appendRow([
+    id,
+    dados.banca    || "",
+    dados.cargo    || "",
+    dados.materia  || "",
+    dados.nProvas  || "",
+    new Date().toLocaleDateString("pt-BR"),
+    dados.link     || "",
+    "OK"
+  ]);
+  Logger.log("Análise registrada: " + id);
+  return id;
+}
+
+// ── ATUALIZAR DASHBOARD ─────────────────────────────────
+function atualizarDashboard(){
+  try{
+    var ss = SpreadsheetApp.openById(MEA_CONFIG.sheetId);
+    var dash = ss.getSheetByName("Dashboard");
+    if(!dash) return;
+    dash.clearContents();
+    dash.getRange(1,1,1,2).setValues([["📊 DASHBOARD MEA",""]]);
+    dash.getRange(1,1).setFontWeight("bold").setBackground("#1A3326").setFontColor("#C9A93E");
+    var metricas = [
+      ["Total de Apostilas",   contarLinhas(ss,"Apostilas")],
+      ["Total de Listas",      contarLinhas(ss,"Listas")],
+      ["Total de Questionários",contarLinhas(ss,"Questionários")],
+      ["Total de Análises",    contarLinhas(ss,"Análises")],
+      ["Última Atualização",   new Date().toLocaleString("pt-BR")]
+    ];
+    dash.getRange(2,1,metricas.length,2).setValues(metricas);
+  }catch(e){ Logger.log("Erro dashboard: "+e.toString()); }
+}
+
+function contarLinhas(ss, abaNome){
+  var sh = ss.getSheetByName(abaNome);
+  return sh ? Math.max(0, sh.getLastRow()-1) : 0;
+}
+
+// ── HELPER: GARANTIR PASTA ──────────────────────────────
+function garantirPasta(caminho){
+  var partes = caminho.split("/");
+  var pasta = DriveApp.getRootFolder();
+  partes.forEach(function(p){
+    p = p.trim(); if(!p) return;
+    var it = pasta.getFoldersByName(p);
+    pasta = it.hasNext() ? it.next() : pasta.createFolder(p);
+  });
+  return pasta;
+}
+
+// ── MENU NO SHEETS ──────────────────────────────────────
+function onOpen(){
+  try{
+    SpreadsheetApp.getUi()
+      .createMenu("🎯 MEA")
+      .addItem("⚙ Configurar Sistema",   "setupMEA")
+      .addItem("📊 Atualizar Dashboard", "atualizarDashboard")
+      .addSeparator()
+      .addItem("📘 Registrar Apostila",  "uiRegistrarApostila")
+      .addItem("📝 Registrar Lista",     "uiRegistrarLista")
+      .addItem("🔬 Registrar Análise",   "uiRegistrarAnalise")
+      .addToUi();
+  }catch(e){ Logger.log("onOpen: "+e.toString()); }
+}
+
+// ── UI HELPERS (FORMS DE REGISTRO MANUAL) ───────────────
+function uiRegistrarApostila(){
+  var ui = SpreadsheetApp.getUi();
+  var mat = ui.prompt("📘 Registrar Apostila","Matéria:",ui.ButtonSet.OK_CANCEL);
+  if(mat.getSelectedButton()!==ui.Button.OK) return;
+  var ban = ui.prompt("Banca:","",ui.ButtonSet.OK_CANCEL);
+  if(ban.getSelectedButton()!==ui.Button.OK) return;
+  var url = ui.prompt("Link do documento no Drive:","",ui.ButtonSet.OK_CANCEL);
+  registrarApostila({materia:mat.getResponseText(),banca:ban.getResponseText(),linkDrive:url.getResponseText()});
+  ui.alert("✅ Apostila registrada!");
+}
+
+function uiRegistrarLista(){
+  var ui = SpreadsheetApp.getUi();
+  var mat = ui.prompt("📝 Registrar Lista","Matéria:",ui.ButtonSet.OK_CANCEL);
+  if(mat.getSelectedButton()!==ui.Button.OK) return;
+  var ban = ui.prompt("Banca:","",ui.ButtonSet.OK_CANCEL);
+  if(ban.getSelectedButton()!==ui.Button.OK) return;
+  var url = ui.prompt("Link do documento no Drive:","",ui.ButtonSet.OK_CANCEL);
+  registrarLista({materia:mat.getResponseText(),banca:ban.getResponseText(),linkDrive:url.getResponseText()});
+  ui.alert("✅ Lista registrada!");
+}
+
+function uiRegistrarAnalise(){
+  var ui = SpreadsheetApp.getUi();
+  var ban = ui.prompt("🔬 Registrar Análise","Banca:",ui.ButtonSet.OK_CANCEL);
+  if(ban.getSelectedButton()!==ui.Button.OK) return;
+  var url = ui.prompt("Link do documento no Drive:","",ui.ButtonSet.OK_CANCEL);
+  registrarAnalise({banca:ban.getResponseText(),link:url.getResponseText()});
+  ui.alert("✅ Análise registrada!");
+}`;
+
+  document.getElementById('gas-code').textContent = code;
+  document.getElementById('gas-wrap').style.display = 'block';
+  toast('Script GAS gerado!','ok');
+}
+
+// ── LIBRARY PROMPTS ───────────────────────────────────────
+const READY_PROMPTS = {
+  ap_cebraspe: {
+    title: 'Apostila CEBRASPE — Analista Nível Superior',
+    text: `════════════════════════════════════════════════════════
+PROMPT MEA — APOSTILA CEBRASPE · NÍVEL SUPERIOR
+AKE UFT-1.0 · [PREENCHA: coloque a matéria e tópicos do edital]
+════════════════════════════════════════════════════════
+
+PAPEL: Você é especialista em preparação para concursos públicos, com domínio da banca CEBRASPE/CESPE para cargos de nível superior. Conhece o Método MEA.
+
+MISSÃO: Gere apostila completa (~30 páginas, ABNT) sobre:
+MATÉRIA: [PREENCHA]
+TÓPICOS: [COLE OS TÓPICOS DO EDITAL]
+CARGO: [PREENCHA]
+
+PERFIL COGNITIVO CEBRASPE:
+Banca conceitual-aplicativa. Avalia compreensão profunda + aplicação + interpretação rigorosa. 35% de questões com pegadinhas. Distratores: verdade parcial, conceito trocado, aplicação indevida, legislação desatualizada.
+
+ESTRUTURA OBRIGATÓRIA:
+- Capa + Sumário + Introdução
+- Para cada tópico: Conceito → Contexto → Legislação → Ponto de Prova
+- 📌 RESUMO PARA MEMORIZAÇÃO (verde) ao final de cada seção
+- 💡 DICA MEA após cada conceito importante
+- ⚠️ ATENÇÃO — PEGADINHA para armadilhas da banca
+- 📜 NORMATIVO com texto-chave das leis
+- Simulado final com 25 questões (A–E), distribuição: A=18%, B=22%, C=26%, D=20%, E=14%
+
+ABNT: Times New Roman 12pt, 1,5 espaçamento, recuo 1,25cm, títulos numerados.
+
+Entregue em Markdown estruturado.`
+  },
+  ap_consulplan: {
+    title: 'Apostila CONSULPLAN — Auditor Municipal',
+    text: `════════════════════════════════════════════════════════
+PROMPT MEA — APOSTILA CONSULPLAN · AUDITOR MUNICIPAL
+AKE UFT-1.0 · [PREENCHA: coloque a matéria e tópicos]
+════════════════════════════════════════════════════════
+
+PAPEL: Especialista em preparação CONSULPLAN. Conhece o perfil comportamental da banca e o Método MEA.
+
+MISSÃO: Apostila completa (~30 páginas, ABNT) sobre:
+MATÉRIA: [PREENCHA]
+TÓPICOS: [COLE OS TÓPICOS DO EDITAL]
+
+PERFIL COGNITIVO CONSULPLAN:
+Banca comportamental. Avalia atenção, contenção e respeito ao enunciado. Monta provas por microssistemas textuais (1 texto + 3-5 questões). 41% de questões com pegadinhas. Distratores: absolutização ("sempre/nunca"), extrapolação, troca de foco, redução indevida.
+
+PROTOCOLO PEC (inclua como seção da apostila):
+Texto inteiro → Comando da questão → Retorno direcionado. NUNCA responder de memória. NUNCA extrapolar.
+
+ESTRUTURA DA APOSTILA:
+- Para cada tópico: Conceito (literal) → Aplicação → Legislação → Ponto de Prova
+- 📌 RESUMO PARA MEMORIZAÇÃO ao final de cada seção
+- 💡 DICA MEA (Protocolo PEC + distratores típicos)
+- 🕵️ PEGADINHA CONSULPLAN com palavras-gatilho de absolutização
+
+SIMULADO FINAL: 25 questões, gabarito C=34%, B=26%, A=24%, D=16%.
+
+Formato Markdown, ABNT.`
+  },
+  ap_medio: {
+    title: 'Apostila Ensino Médio',
+    text: `════════════════════════════════════════════════════════
+PROMPT MEA — APOSTILA ENSINO MÉDIO
+AKE UFT-1.0 · [PREENCHA: matéria e assunto]
+════════════════════════════════════════════════════════
+
+PAPEL: Professor experiente no Ensino Médio, especialista em didática e linguagem acessível para jovens de 14–17 anos.
+
+MISSÃO: Apostila didática (~20 páginas, ABNT) sobre:
+MATÉRIA: [PREENCHA]
+ASSUNTO: [PREENCHA]
+NÍVEL: Ensino Médio
+
+LINGUAGEM: Clara, objetiva, com exemplos do cotidiano. Evite jargão técnico desnecessário. Use analogias simples.
+
+ESTRUTURA:
+- Capa + Sumário + Objetivos de Aprendizagem
+- Para cada tópico: O que é → Por que importa → Como funciona → Exemplos práticos
+- 📌 RESUMO (caixinha colorida) ao final de cada seção — bullets curtos
+- 💡 CURIOSIDADE ou DICA
+- Exercícios ao final de cada seção (5 questões)
+- Gabarito comentado
+
+ABNT simplificado: Times New Roman 12pt, 1,5 espaçamento.
+Formato Markdown.`
+  },
+  ap_superior: {
+    title: 'Apostila Ensino Superior — Graduação',
+    text: `════════════════════════════════════════════════════════
+PROMPT MEA — APOSTILA ENSINO SUPERIOR
+AKE UFT-1.0 · [PREENCHA: matéria e assunto]
+════════════════════════════════════════════════════════
+
+PAPEL: Professor universitário, especialista na área, familiarizado com metodologia científica e ABNT.
+
+MISSÃO: Material de estudo universitário (~35 páginas) sobre:
+MATÉRIA: [PREENCHA]
+ASSUNTO: [PREENCHA]
+NÍVEL: Ensino Superior / Graduação
+
+ESTRUTURA ACADÊMICA:
+- Capa + Resumo (Abstract) + Sumário
+- Para cada tema: Revisão de Literatura → Teoria → Metodologia → Aplicação
+- Citações e referências no formato ABNT NBR 6023
+- Tabelas e figuras com legenda ABNT
+- Exercícios de fixação (questões abertas e múltipla escolha)
+- Referências bibliográficas completas
+
+LINGUAGEM: Acadêmica, formal, precisa. Termos técnicos com definição na primeira ocorrência.
+
+Formato Markdown com ABNT. Inclua ao menos 8 referências bibliográficas.`
+  },
+  ls_risco: {
+    title: 'Lista de Risco MEA — 15 Questões',
+    text: `════════════════════════════════════════════════════════
+PROMPT MEA — LISTA DE RISCO · 15 QUESTÕES
+AKE UFT-1.0 · [PREENCHA: matéria, banca, assunto]
+════════════════════════════════════════════════════════
+
+PAPEL: Especialista em construção de questões anti-pegadinha pelo Método MEA.
+
+MISSÃO: Lista de risco com 15 questões sobre:
+MATÉRIA: [PREENCHA]
+BANCA: [PREENCHA]
+ASSUNTO: [PREENCHA]
+FORMATO: 5 alternativas (A–E)
+
+REGRAS INEGOCIÁVEIS (Manual de Risco MEA):
+1. DIFICULDADE PERCEBIDA 6,5–7,5 / CONTEÚDO REAL 4–5 (o erro é de leitura, não de conteúdo)
+2. DISTRIBUIÇÃO: A=20%, B=22%, C=24%, D=20%, E=14% — NUNCA concentrar
+3. UMA armadilha dominante por questão (absolutização OU extrapolação OU troca de foco OU redução)
+4. Alternativa correta = mais moderada, mais contida, menos brilhante
+5. Pelo menos 3 questões com comando negativo (EXCETO/NÃO)
+6. NENHUMA alternativa absurda — todas plausíveis
+
+GABARITO COMENTADO (obrigatório para lista de risco):
+Para cada questão:
+- Qual erro a banca queria provocar?
+- Por que a alternativa escolhida parece correta?
+- Qual palavra/trecho salva o candidato atento?
+
+Formato Markdown. Checklist MEA ao final.`
+  },
+  ls_cebraspe: {
+    title: 'Simulado CEBRASPE — 25 Questões',
+    text: `════════════════════════════════════════════════════════
+PROMPT MEA — SIMULADO CEBRASPE · 25 QUESTÕES
+AKE UFT-1.0 · [PREENCHA: matéria, cargo, tópicos]
+════════════════════════════════════════════════════════
+
+PAPEL: Especialista em questões CEBRASPE para concursos de nível superior.
+
+MISSÃO: Simulado com 25 questões no padrão CEBRASPE sobre:
+MATÉRIA: [PREENCHA]
+CARGO: [PREENCHA]
+TÓPICOS: [COLE OS TÓPICOS DO EDITAL]
+FORMATO: 5 alternativas (A, B, C, D, E)
+
+PADRÃO CEBRASPE:
+- Distribuição: A=18%, B=22%, C=26%, D=20%, E=14%
+- 35% de questões com pegadinhas
+- Distratores: verdade parcial, conceito trocado, aplicação indevida
+- Questões contextualizadas (casos práticos + legislação)
+- Progressão: Q1–10 (fácil) → Q11–18 (médio) → Q19–25 (difícil)
+- 20% das questões com comando negativo (EXCETO/NÃO/INCORRETO)
+
+GABARITO COMENTADO:
+Resposta + por que cada alternativa errada está errada (nome do distrator) + alerta reutilizável.
+
+Formato Markdown. Estatísticas ao final (distribuição real do gabarito, dificuldade média, temas cobertos).`
+  },
+  ls_medio: {
+    title: 'Lista Ensino Médio',
+    text: `════════════════════════════════════════════════════════
+PROMPT MEA — LISTA ENSINO MÉDIO · 20 QUESTÕES
+AKE UFT-1.0 · [PREENCHA: matéria e assunto]
+════════════════════════════════════════════════════════
+
+PAPEL: Professor do Ensino Médio, expert em construção de questões didáticas.
+
+MISSÃO: Lista de exercícios com 20 questões sobre:
+MATÉRIA: [PREENCHA]
+ASSUNTO: [PREENCHA]
+NÍVEL: Ensino Médio
+
+FORMATO: 4 alternativas (A, B, C, D)
+DISTRIBUIÇÃO: A=25%, B=25%, C=25%, D=25%
+DIFICULDADE: Progressiva — Q1–7 (fácil) → Q8–14 (médio) → Q15–20 (difícil)
+
+LINGUAGEM: Acessível para jovens de 14–17 anos. Exemplos práticos.
+
+GABARITO: Resposta correta + explicação em 2 linhas + dica de memorização.
+
+Formato Markdown.`
+  },
+  ls_consulplan: {
+    title: 'Lista CONSULPLAN — 20 Questões Premium',
+    text: `════════════════════════════════════════════════════════
+PROMPT MEA — LISTA CONSULPLAN · 20 QUESTÕES
+AKE UFT-1.0 · [PREENCHA: matéria, cargo, tópicos]
+════════════════════════════════════════════════════════
+
+PAPEL: Especialista em questões CONSULPLAN. Conhece o perfil comportamental da banca e o Protocolo PEC.
+
+MISSÃO: Lista com 20 questões no padrão CONSULPLAN sobre:
+MATÉRIA: [PREENCHA]
+CARGO: [PREENCHA]
+ASSUNTO: [PREENCHA]
+FORMATO: 4 alternativas (A, B, C, D)
+
+PADRÃO CONSULPLAN:
+- Distribuição: C=34%, B=26%, A=24%, D=16%
+- Estruturar em microssistemas: 1 texto-base para cada 3 questões
+- 41% das questões com pegadinhas de absolutização ("sempre/nunca/todo")
+- Dificuldade percebida alta, conteúdo real médio
+
+GABARITO COMENTADO (obrigatório):
+Para cada questão: nome do distrator + onde está a armadilha + PEC aplicado.
+
+Formato Markdown.`
+  },
+  an_completa: {
+    title: 'Análise Completa — Framework MEA 8 Fases',
+    text: `════════════════════════════════════════════════════════
+PROMPT MEA — ANÁLISE DE BANCA · 8 FASES COMPLETAS
+AKE UFT-1.0 · [Anexe as provas em PDF junto a este prompt]
+════════════════════════════════════════════════════════
+
+PAPEL: Analista de engenharia reversa de bancas, Método MEA (AKE UFT-1.0).
+
+MISSÃO: Analise as provas e gabaritos em anexo.
+BANCA: [PREENCHA]
+CARGO/ÁREA: [PREENCHA]
+MATÉRIA: [PREENCHA]
+
+Produza relatório completo com as 8 Fases MEA:
+
+FASE 1 — PERFIL COGNITIVO: tipo de leitura (%), atenção, contenção, margem inferência, postura ideal, vieses explorados.
+FASE 2 — ANATOMIA: questões isoladas vs. blocos (%), tempo por questão, distribuição gabarito, distribuição temática.
+FASE 3 — DISTRATORES: tabela com categoria, frequência (%), exemplos reais, estratégia eliminação.
+FASE 4 — COMANDOS: verbos críticos, % negativo, padrão de formulação.
+FASE 5 — ENGENHARIA DO ERRO: top 5 erros, causa, padrão explorado, intervenção.
+FASE 6 — ESTRATÉGIAS: protocolo leitura, gestão temporal, algoritmo eliminação, chute inteligente.
+FASE 7 — VALIDAÇÃO: padrões >70%, inconsistentes <50%, acurácia preditiva.
+FASE 8 — RECOMENDAÇÕES: checklist apostila, tipos de questão, alertas top 5, prompt reutilizável.
+
+Base SOMENTE nas provas fornecidas. Formato Markdown com tabelas.`
+  },
+  an_rapida: {
+    title: 'Análise Rápida — Perfil + Distratores',
+    text: `════════════════════════════════════════════════════════
+PROMPT MEA — ANÁLISE RÁPIDA DE BANCA
+AKE UFT-1.0 · [Anexe as provas junto a este prompt]
+════════════════════════════════════════════════════════
+
+PAPEL: Analista MEA, foco em informações imediatamente acionáveis.
+
+MISSÃO: Análise rápida (Fases 1, 3 e 6) das provas em anexo.
+BANCA: [PREENCHA] | CARGO: [PREENCHA]
+
+FASE 1 — PERFIL COGNITIVO:
+- Tipo de leitura: [%literal / %inferencial]
+- Distrator dominante: [qual e % aproximado]
+- Postura ideal: [em uma frase]
+
+FASE 3 — TOP 5 DISTRATORES:
+| Tipo | % | Como eliminar |
+|---|---|---|
+
+FASE 6 — ESTRATÉGIA IMEDIATA:
+1. Sequência de leitura (3 passos)
+2. Algoritmo de eliminação (4 passos)
+3. Chute inteligente: gabarito estimado [A/B/C/D/E]=%
+
+Entregue em 1 página Markdown. Direto ao ponto.`
+  },
+  qz_forms: {
+    title: 'Questionário Forms + Análise de Desempenho',
+    text: `════════════════════════════════════════════════════════
+PROMPT MEA — QUESTIONÁRIO PARA GOOGLE FORMS
+AKE UFT-1.0 · [PREENCHA: matéria, assunto, banca]
+════════════════════════════════════════════════════════
+
+PAPEL: Especialista em avaliação pedagógica e análise de desempenho.
+
+MISSÃO: Gere 20 questões + análise de desempenho sobre:
+MATÉRIA: [PREENCHA]
+ASSUNTO: [PREENCHA]
+BANCA/NÍVEL: [PREENCHA]
+
+FORMATO DAS QUESTÕES: 5 alternativas (A–E), distribuição equilibrada.
+ESTRUTURA: cobrir pelo menos 5 temas diferentes, progressão de dificuldade.
+
+ENTREGUE EM 2 PARTES:
+
+PARTE 1 — QUESTÕES (Markdown):
+Para cada questão: número, tema, dificuldade (1–5), enunciado, alternativas, gabarito.
+
+PARTE 2 — JSON PARA FORMS:
+[{"numero":1,"tema":"[X]","enunciado":"...","alternativas":{"A":"...","B":"...","C":"...","D":"...","E":"..."},"correta":"X","explicacao":"..."}]
+
+PARTE 3 — ANÁLISE DE DESEMPENHO (tabela):
+| Tema | % Questões | Indicador de Domínio | O que estudar se errar |
+|---|---|---|---|
+
+Após o questionário, forneça texto de feedback por faixa:
+- ≥80%: [texto motivacional + próximo passo]
+- 60–79%: [texto + o que revisar]  
+- <60%: [texto + plano de recuperação]`
+  },
+  qz_pdf: {
+    title: 'Questionário PDF — Formato Apostila',
+    text: `════════════════════════════════════════════════════════
+PROMPT MEA — QUESTIONÁRIO PARA PDF
+AKE UFT-1.0 · [PREENCHA: matéria, assunto]
+════════════════════════════════════════════════════════
+
+PAPEL: Professor especialista, formato prova tradicional.
+
+MISSÃO: Questionário para impressão em PDF via Google Docs:
+MATÉRIA: [PREENCHA]
+ASSUNTO: [PREENCHA]
+
+20 questões de múltipla escolha (A–D, 4 alternativas).
+Distribuição equilibrada do gabarito.
+
+LAYOUT:
+- Cabeçalho: Nome / Data / Pontuação ___/20
+- Para cada questão: número em negrito + enunciado + 4 alternativas + linha "Resposta: ___"
+- Espaço entre questões: 1 linha
+- Após questão 10: indicação de "Meia prova — [tempo decorrido: ___min]"
+
+GABARITO: em folha separada (quebra de página).
+Para cada questão: letra + explicação em 1 linha.
+
+ABNT: Times New Roman 12pt, espaçamento 1,5, margens 3-2-3-2cm.
+Formato Markdown com separadores claros.`
+  }
+};
+
+function loadReadyPrompt(key){
+  const p = READY_PROMPTS[key];
+  if(!p) return;
+  const wrap = document.getElementById('pr-wrap');
+  document.getElementById('pr-titulo').textContent = p.title;
+  document.getElementById('pr-prompt').textContent = p.text;
+  wrap.style.display='block';
+  wrap.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function copyReadyPrompt(key){
+  const p = READY_PROMPTS[key];
+  if(!p) return;
+  navigator.clipboard.writeText(p.text).then(()=>toast('Prompt copiado!','ok')).catch(()=>toast('Erro ao copiar','er'));
+}
+
+// ── HISTÓRICO ─────────────────────────────────────────────
+function gasRegister(tipo){
+  let nome='';
+  if(tipo==='apostila') nome = (v('ap-materia')||'?') + ' · ' + (v('ap-banca')||getNivel('ap-nivel-grid'));
+  if(tipo==='lista')    nome = (v('ls-materia')||'?') + ' · ' + (v('ls-banca')||getNivel('ls-nivel-grid'));
+  if(tipo==='analise')  nome = (v('an-banca')||'?') + ' · ' + (v('an-cargo')||'');
+
+  const entry = {
+    tipo: tipo.charAt(0).toUpperCase()+tipo.slice(1),
+    nome: nome,
+    banca: tipo==='apostila'?v('ap-banca'):tipo==='lista'?v('ls-banca'):v('an-banca'),
+    data: new Date().toLocaleDateString('pt-BR'),
+    versao: tipo==='apostila'?tgVal('ap-versao'):tipo==='lista'?tgVal('ls-versao'):'—',
+  };
+  historico.push(entry);
+  DB.set('hist', historico);
+  renderHistorico();
+  toast('Registrado no histórico local. Execute o GAS para salvar no Sheets.','ok');
+}
+
+function renderHistorico(){
+  const tbody = document.getElementById('hi-tbody');
+  const empty = document.getElementById('hi-empty');
+  const wrap  = document.getElementById('hi-table-wrap');
+  if(!historico.length){ empty.style.display='block'; wrap.style.display='none'; return; }
+  empty.style.display='none'; wrap.style.display='block';
+  tbody.innerHTML = historico.slice().reverse().map(e=>`
+    <tr>
+      <td><span class="badge ${e.tipo==='Lista'?'light':e.tipo==='Analise'?'amber':''}">${e.tipo}</span></td>
+      <td>${e.nome||'—'}</td>
+      <td>${e.banca||'—'}</td>
+      <td>—</td>
+      <td>${e.versao||'—'}</td>
+      <td>${e.data}</td>
+      <td><button class="btn btn-sm btn-outline" style="padding:.25rem .6rem">GAS</button></td>
+    </tr>`).join('');
+}
+
+// ── EXECUTAR SCRIPT ───────────────────────────────────────
+
+function exTipoChange(){
+  const tipo = tgVal('ex-tipo');
+  const pastaMap = {
+    '📘 Apostila / Guia':     'Plataforma de Estudos MEA / Apostilas',
+    '📝 Lista de Exercícios': 'Plataforma de Estudos MEA / Listas',
+    '🧪 Questionário':        'Plataforma de Estudos MEA / Questionários',
+    '🔬 Análise de Banca':    'Plataforma de Estudos MEA / Análises',
+  };
+  const el = document.getElementById('ex-destino-label');
+  if(el) el.textContent = '📁 ' + (pastaMap[tipo] || 'Plataforma de Estudos MEA / Geral');
+}
+
+function exValidateScript(){
+  const script = v('ex-script');
+  const badge  = document.getElementById('ex-script-badge');
+  const btn    = document.getElementById('ex-btn-enviar');
+  const valDiv = document.getElementById('ex-validation');
+  const valTitle = document.getElementById('ex-val-title');
+  const valBody  = document.getElementById('ex-val-body');
+  const info     = document.getElementById('ex-val-info');
+
+  if(!script || script.length < 50){
+    badge.style.display='none';
+    btn.disabled = true;
+    valDiv.style.display='none';
+    return;
+  }
+
+  // Verificações básicas
+  const temStart    = script.includes('START_SCRIPT') || script.includes('var dados') || script.includes('var cfg');
+  const temResultado = script.includes('resultado') || script.includes('docUrl') || script.includes('doc.getUrl');
+  const temDoc      = script.includes('DocumentApp') || script.includes('FormApp') || script.includes('DriveApp');
+  const temErro     = script.includes('SyntaxError') || script.includes('TypeError') || script.includes('Uncaught');
+
+  valDiv.style.display='block';
+
+  if(temErro){
+    info.className='info err';
+    valTitle.textContent = '⚠️ Script contém mensagens de erro';
+    valBody.textContent  = 'O texto colado parece conter uma mensagem de erro da IA, não um script válido. Peça para a IA gerar novamente.';
+    badge.style.display='none';
+    btn.disabled=true;
+    return;
+  }
+
+  if(!temDoc){
+    info.className='info warn';
+    valTitle.textContent = '⚠️ Script não encontrado';
+    valBody.textContent  = 'Certifique-se de que colou o código completo devolvido pela IA. Ele deve conter chamadas ao DocumentApp, DriveApp ou FormApp.';
+    badge.style.display='none';
+    btn.disabled=true;
+    return;
+  }
+
+  if(!temResultado){
+    info.className='info warn';
+    valTitle.textContent = '⚠️ Script sem retorno de resultado';
+    valBody.textContent  = 'O script deve ter uma variável "resultado" com { success: true, docUrl: "..." }. Solicite à IA que corrija o script.';
+    badge.style.display='none';
+    btn.disabled=true;
+    return;
+  }
+
+  // Script válido
+  info.className='info';
+  const lines = script.split('\n').length;
+  valTitle.textContent = '✅ Script válido detectado';
+  valBody.textContent  = lines + ' linhas · Contém: ' +
+    (temDoc ? 'Drive/Docs/Forms ✓ ' : '') +
+    (temResultado ? '· Resultado ✓' : '');
+  badge.style.display='block';
+  btn.disabled=false;
+}
+
+async function exEnviar(){
+  const script    = v('ex-script');
+  const tipo      = tgVal('ex-tipo')    || 'Lista';
+  const materia   = v('ex-materia')     || '';
+  const banca     = v('ex-banca')       || '';
+  const versao    = tgVal('ex-versao')  || 'v1';
+  const webAppUrl = v('ex-webapp-url')  || DB.get('webapp_url') || '';
+
+  document.getElementById('ex-resultado').style.display = 'none';
+  document.getElementById('ex-erro').style.display      = 'none';
+
+  const tipoLimpo = tipo.replace(/^[^ ]+ /, '');
+  const token     = DB.get('webapp_token') || 'mea2025';
+
+  const payload = {
+    token,
+    script,
+    dados: { tipo: tipoLimpo, materia, banca, versao, assunto: materia, cargo: banca }
+  };
+
+  // ── SEM WEB APP: modo manual ──────────────────────────
+  if (!webAppUrl) {
+    document.getElementById('ex-erro').style.display = 'block';
+    document.getElementById('ex-erro-msg').textContent =
+      'Web App não configurado. Use o modo Manual: copie o script e execute no Apps Script.';
+    // navega para aba manual
+    const tabs   = document.querySelectorAll('#p-executar .fblock:nth-child(4) .tabs .tab');
+    const panels = document.querySelectorAll('#p-executar .fblock:nth-child(4) .tab-panel');
+    tabs.forEach(t => t.classList.remove('on'));
+    panels.forEach(p => p.classList.remove('on'));
+    if (tabs[1]) tabs[1].classList.add('on');
+    const mp = document.getElementById('ex-tab-manual');
+    if (mp) mp.classList.add('on');
+    toast('Web App não configurado. Use o modo Manual.', 'er');
+    return;
+  }
+
+  // ── COM WEB APP: fetch com CORS ───────────────────────
+  const btn = document.getElementById('ex-btn-enviar');
+  btn.disabled    = true;
+  btn.textContent = '⏳ Executando...';
+
+  try {
+    // O GAS Executor agora retorna JSON com header Access-Control-Allow-Origin: *
+    // Enviamos como text/plain para evitar preflight OPTIONS (GAS não suporta preflight)
+    const response = await fetch(webAppUrl, {
+      method:  'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body:    JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new Error('Servidor retornou HTTP ' + response.status + ' — verifique o deploy do Web App.');
+    }
+
+    const resultado = await response.json();
+
+    if (!resultado.success) {
+      throw new Error(resultado.error || 'O GAS retornou sucesso=false sem mensagem de erro.');
+    }
+
+    // ── SUCESSO: exibir link real do documento ──────────
+    const docUrl  = resultado.docUrl  || '';
+    const message = resultado.message || '';
+
+    document.getElementById('ex-resultado').style.display = 'block';
+    document.getElementById('ex-doc-url').value           = docUrl;
+
+    const linkEl = document.getElementById('ex-doc-link');
+    linkEl.href        = docUrl || 'https://drive.google.com';
+    linkEl.textContent = docUrl ? 'Abrir documento ↗' : 'Abrir Drive ↗';
+
+    document.getElementById('ex-reg-status').textContent =
+      '✅ Registrado no Sheets · Pasta: Plataforma de Estudos MEA / ' + tipoLimpo + 's';
+
+    document.getElementById('ex-resultado-msg').textContent =
+      (message ? message + '\n\n' : '') +
+      'Tipo: '     + tipoLimpo        + '\n' +
+      'Matéria: '  + (materia || '—') + '\n' +
+      'Banca: '    + (banca   || '—') + '\n' +
+      'Versão: '   + versao            + '\n' +
+      'Data: '     + new Date().toLocaleString('pt-BR');
+
+    // ── histórico local ─────────────────────────────────
+    historico.push({
+      tipo: tipoLimpo,
+      nome: materia + ' · ' + banca,
+      banca, versao,
+      data:   new Date().toLocaleDateString('pt-BR'),
+      docUrl
+    });
+    DB.set('hist', historico);
+    renderHistorico();
+    toast('✅ Documento criado! Link disponível.', 'ok');
+
+  } catch (err) {
+    document.getElementById('ex-erro').style.display = 'block';
+    document.getElementById('ex-erro-msg').textContent = err.message || err.toString();
+    toast('Erro: ' + (err.message || err.toString()), 'er');
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = '▶ Executar no GAS — Gerar Documento';
+  }
+}
+
+async function exTestarWebApp(){
+  const url       = v('ex-webapp-url');
+  const statusEl  = document.getElementById('ex-webapp-status');
+  if (!url) { toast('Cole a URL do Web App primeiro.', 'er'); return; }
+
+  DB.set('webapp_url', url);
+  statusEl.style.display = 'block';
+  statusEl.innerHTML = '<div class="info">⏳ Testando conexão...</div>';
+
+  try {
+    // GET no doGet do GAS — retorna JSON com status, sem preflight
+    const r    = await fetch(url, { method: 'GET' });
+    const data = await r.json();
+
+    if (data && data.status) {
+      statusEl.innerHTML =
+        '<div class="info" style="background:rgba(39,130,74,.1);border-color:var(--green);color:var(--green)">' +
+        '<strong>✅ Web App online · CORS OK</strong>' +
+        'Resposta: ' + data.status + ' · Versão: ' + (data.versao || data.version || '—') +
+        '</div>';
+      toast('Web App conectado com CORS!', 'ok');
+    } else {
+      throw new Error('Resposta inesperada: ' + JSON.stringify(data));
+    }
+  } catch (e) {
+    statusEl.innerHTML =
+      '<div class="info err"><strong>❌ Erro na conexão</strong>' +
+      'Detalhe: ' + e.message + '<br><br>' +
+      'Verifique: 1) deploy ativo como Web App · 2) "Executar como: Eu" · ' +
+      '3) "Quem acessa: Qualquer pessoa" · 4) URL copiada corretamente.' +
+      '</div>';
+    toast('Erro de conexão — veja detalhes.', 'er');
+  }
+}
+
+function exLimpar(){
+  document.getElementById('ex-script').value='';
+  document.getElementById('ex-script-badge').style.display='none';
+  document.getElementById('ex-validation').style.display='none';
+  document.getElementById('ex-resultado').style.display='none';
+  document.getElementById('ex-erro').style.display='none';
+  document.getElementById('ex-btn-enviar').disabled=true;
+  toast('Área de script limpa.','ok');
+}
+
+// Tab switcher local para o painel Executar
+function switchTabLocal(btn, targetId){
+  const bar = btn.parentElement;
+  bar.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');
+  const panels = btn.closest('.fblock').querySelectorAll('.tab-panel');
+  panels.forEach(p=>p.classList.remove('on'));
+  const target = document.getElementById(targetId);
+  if(target) target.classList.add('on');
+}
+
+
+function v(id){ const el=document.getElementById(id); return el?(el.value||'').trim():'' }
+
+// ── MODAL ────────────────────────────────────────────────
+function closeModal(){ document.getElementById('modal-ready').classList.remove('on'); }
+
+// ── INIT ─────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  gasBuild();
+  renderHistorico();
+  exTipoChange();
+  // Restaurar URL do webapp salva
+  const savedUrl = DB.get('webapp_url');
+  if(savedUrl){ const el=document.getElementById('ex-webapp-url'); if(el) el.value=savedUrl; }
+  // Inicializa campos concurso visíveis (default = concurso)
+  document.getElementById('ap-concurso-fields').classList.add('show');
+  document.getElementById('ls-concurso-fields').classList.add('show');
+});
+</script>
+</body>
+</html>
