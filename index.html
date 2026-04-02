@@ -1087,7 +1087,7 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 
     <div class="info" style="margin-bottom:1rem">
       <strong>De onde vem este script?</strong>
-      Do chat com a IA. Você usou um dos módulos (Apostila, Lista, Questionário, Análise de Banca) para gerar o prompt → colou o prompt na IA → a IA devolveu um script/código completo entre marcadores <code>// --- START_SCRIPT ---</code> e <code>// --- END_SCRIPT ---</code> → cole esse código inteiro abaixo.
+      Do chat com a IA. Após copiar o prompt gerado, cole na IA e <strong>peça o código GAS</strong>. O script começa com <code>var dados = {</code> ou <code>// --- START_SCRIPT ---</code> e contém chamadas como <code>DocumentApp.create()</code>, <code>DriveApp</code> etc. <strong>Não cole o texto da apostila</strong> — cole apenas o bloco de código JavaScript.
     </div>
 
     <div class="field">
@@ -1097,7 +1097,9 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
           id="ex-script"
           rows="18"
           style="font-family:'Space Mono',monospace;font-size:.73rem;line-height:1.65;background:#0F1C15;color:rgba(248,243,234,.88);border-color:#2A5239;resize:vertical;min-height:300px;"
-          placeholder="// Cole aqui o script completo devolvido pela IA
+          placeholder="// Cole aqui SOMENTE o código JavaScript/GAS devolvido pela IA
+// O script começa assim (exemplo):
+
 // --- START_SCRIPT ---
 var dados = {
   materia: &quot;Bioeconomia&quot;,
@@ -1105,11 +1107,18 @@ var dados = {
   ...
 };
 
-// ... restante do código ...
+function gerarGuia() {
+  var doc = DocumentApp.create(&quot;Apostila&quot;);
+  ...
+  doc.saveAndClose();
+  resultado = { success: true, docUrl: doc.getUrl() };
+}
 
-resultado = { success: true, docUrl: doc.getUrl(), ... };
+gerarGuia();
+// --- END_SCRIPT ---
 
-// --- END_SCRIPT ---"
+// ⚠️ NÃO cole o texto da apostila em Markdown (# Título, ## Seção...)
+// ⚠️ Cole apenas o bloco de código que começa com var, function ou //"
           oninput="exValidateScript()"
         ></textarea>
         <div id="ex-script-badge" style="position:absolute;top:.6rem;right:.6rem;display:none">
@@ -1576,6 +1585,56 @@ Aplique cada regra abaixo sem exceção, em qualquer parte do documento.
       fonte ou contexto que justifique a imprecisão.
 ════════════════════════════════════════════════════════`;
 
+// ── ENTREGÁVEL GAS — bloco obrigatório em todos os prompts ──
+// Instrui a IA a retornar CÓDIGO executável, não texto Markdown.
+const ENTREGAVEL_GAS = (tipo) => `
+════════════════════════════════════════════════════════
+⚠️  FORMATO DE ENTREGA — OBRIGATÓRIO
+════════════════════════════════════════════════════════
+NÃO retorne o conteúdo em Markdown, texto corrido ou qualquer
+formato de documento. Esse output será descartado.
+
+Retorne EXCLUSIVAMENTE um script JavaScript/GAS completo,
+entre os marcadores abaixo — sem nenhum texto fora deles:
+
+// --- START_SCRIPT ---
+[código aqui]
+// --- END_SCRIPT ---
+
+REQUISITOS DO SCRIPT:
+1. Criar o documento com DocumentApp.create("Título")
+2. Construir TODO o conteúdo de ${tipo} dentro do código,
+   usando body.appendParagraph(), appendTable(), etc.
+3. Última linha do try{}: resultado = { success: true, docUrl: doc.getUrl(), message: "..." };
+4. Estrutura de tratamento de erro: try/catch com resultado = { success: false, ... }
+5. Mover o arquivo para a pasta "Plataforma de Estudos MEA" no Drive
+6. Todo o conteúdo (texto, questões, gabarito) embutido no próprio script
+
+TEMPLATE OBRIGATÓRIO:
+// --- START_SCRIPT ---
+var dados = { materia: "...", banca: "...", versao: "..." };
+var resultado = { success: false, docUrl: null, message: "" };
+try {
+  var doc  = DocumentApp.create("[Título completo do documento]");
+  var body = doc.getBody();
+  var base = {};
+  base[DocumentApp.Attribute.FONT_FAMILY] = "Times New Roman";
+  base[DocumentApp.Attribute.FONT_SIZE]   = 12;
+  // ... TODO O CONTEÚDO AQUI ...
+  doc.saveAndClose();
+  try {
+    var it = DriveApp.getFoldersByName("Plataforma de Estudos MEA");
+    var pasta = it.hasNext() ? it.next() : DriveApp.createFolder("Plataforma de Estudos MEA");
+    pasta.addFile(DriveApp.getFileById(doc.getId()));
+    DriveApp.getRootFolder().removeFile(DriveApp.getFileById(doc.getId()));
+  } catch(e) {}
+  resultado = { success: true, docUrl: doc.getUrl(), message: "✅ ${tipo} gerado com sucesso." };
+} catch(err) {
+  resultado = { success: false, docUrl: null, message: "Erro: " + err.toString() };
+}
+// --- END_SCRIPT ---
+════════════════════════════════════════════════════════`;
+
 // ── NAVIGATION ────────────────────────────────────────────
 function nav(el, id){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
@@ -1879,13 +1938,7 @@ REGRAS DO SIMULADO MEA:
 
 ${VICIOS_IA}
 
-════════════════════════════════════════════
-ENTREGÁVEL ESPERADO
-════════════════════════════════════════════
-Um documento completo em Markdown estruturado, pronto para ser
-convertido em Google Docs / PDF. Use # para H1, ## para H2, ### para H3.
-Separe seções com linha horizontal (---).
-Ao final, inclua a lista de referências bibliográficas em formato ABNT.
+${ENTREGAVEL_GAS('Apostila / Guia de Estudo')}
 
 Data de geração: ${new Date().toLocaleDateString('pt-BR')}
 Versão: ${versao.toUpperCase()} | AKE UFT-1.0`;
@@ -2026,14 +2079,7 @@ ${gab.includes('Completo') ? `1. RESPOSTA CORRETA: alternativa [X]
 
 ${VICIOS_IA}
 
-════════════════════════════════════════════
-ENTREGÁVEL
-════════════════════════════════════════════
-Documento Markdown com:
-- Cabeçalho com dados da lista
-- ${qtd} questões numeradas com campos de resposta
-- Gabarito comentado após quebra de página
-- Estatísticas: distribuição real do gabarito, dificuldade média, temas cobertos
+${ENTREGAVEL_GAS('Lista de Exercícios')}
 
 Data: ${new Date().toLocaleDateString('pt-BR')} | Versão: ${versao.toUpperCase()} | AKE UFT-1.0`;
 
@@ -2111,25 +2157,10 @@ Para cada questão: resposta correta + por que cada errada está errada (1 linha
 
 ${VICIOS_IA}
 
-════════════════════════════════════════════
-ENTREGÁVEL ESPERADO
-════════════════════════════════════════════
-Formato Markdown estruturado.
+${ENTREGAVEL_GAS('Questionário de Desempenho')}
 ${dest.includes('Forms') || dest.includes('Ambos') ? `
-Para Google Forms, forneça TAMBÉM em formato JSON estruturado:
-{
-  "titulo": "Questionário - [matéria]",
-  "questoes": [
-    {
-      "numero": 1,
-      "tema": "[tema]",
-      "enunciado": "[enunciado]",
-      "alternativas": {"A":"...","B":"...","C":"...","D":"..."},
-      "correta": "X",
-      "explicacao": "[1 linha]"
-    }
-  ]
-}
+ADICIONAL PARA FORMS — após o script, forneça também o JSON das questões:
+[{"numero":1,"tema":"[X]","enunciado":"...","alternativas":{"A":"...","B":"...","C":"...","D":"...","E":"..."},"correta":"X","explicacao":"..."}]
 ` : ''}`;
 
   const gasCode = buildQzGAS(materia, banca, qtd, alts, dest, isQuiz, analise);
@@ -2414,6 +2445,21 @@ IMPORTANTE: Baseie TODA análise nas provas fornecidas. Não invente padrões.
 Se um padrão aparecer em menos de 2 provas, sinalize como "inconclusivo".
 
 ${VICIOS_IA}
+
+════════════════════════════════════════════════════════
+FORMATO DE ENTREGA — ANÁLISE DE BANCA
+════════════════════════════════════════════════════════
+⚠️ ATENÇÃO: Este módulo é o ÚNICO que retorna texto — não script.
+O relatório será colado no campo "Análise de Banca" dos módulos
+Apostila e Lista para calibrar os prompts de geração de script.
+
+Retorne o relatório em Markdown estruturado com as 8 fases.
+Ao final, inclua uma seção:
+
+── DOCUMENTO DE PERFIL DA BANCA (copie este bloco) ──
+[resumo de 1 página com: tipo de leitura, distratores top 5,
+ distribuição de gabarito, estratégia de eliminação, alertas]
+── FIM DO PERFIL ──
 
 Data: ${new Date().toLocaleDateString('pt-BR')} | AKE UFT-1.0`;
 
@@ -2994,13 +3040,27 @@ Formato Markdown com separadores claros.`
   }
 };
 
+// Prompts que geram GAS (apostila, lista, questionário)
+// Prompts que ficam em Markdown (análise de banca — usados como calibração)
+const GAS_TYPES = ['ap_','ls_','qz_'];
+
+function _isGasPrompt(key){ return GAS_TYPES.some(t => key.startsWith(t)); }
+function _tipoFromKey(key){
+  if(key.startsWith('ap_')) return 'Apostila / Guia de Estudo';
+  if(key.startsWith('ls_')) return 'Lista de Exercícios';
+  if(key.startsWith('qz_')) return 'Questionário de Desempenho';
+  return 'Documento';
+}
+
 function loadReadyPrompt(key){
   const p = READY_PROMPTS[key];
   if(!p) return;
   const wrap = document.getElementById('pr-wrap');
   document.getElementById('pr-titulo').textContent = p.title;
-  // Injeta o bloco de vícios antes do último parágrafo do prompt
-  document.getElementById('pr-prompt').textContent = p.text + '\n' + VICIOS_IA;
+  const suffix = _isGasPrompt(key)
+    ? '\n' + VICIOS_IA + '\n' + ENTREGAVEL_GAS(_tipoFromKey(key))
+    : '\n' + VICIOS_IA;
+  document.getElementById('pr-prompt').textContent = p.text + suffix;
   wrap.style.display='block';
   wrap.scrollIntoView({behavior:'smooth',block:'start'});
 }
@@ -3008,8 +3068,13 @@ function loadReadyPrompt(key){
 function copyReadyPrompt(key){
   const p = READY_PROMPTS[key];
   if(!p) return;
-  const full = p.text + '\n' + VICIOS_IA;
-  navigator.clipboard.writeText(full).then(()=>toast('Prompt copiado com regras anti-vício!','ok')).catch(()=>toast('Erro ao copiar','er'));
+  const suffix = _isGasPrompt(key)
+    ? '\n' + VICIOS_IA + '\n' + ENTREGAVEL_GAS(_tipoFromKey(key))
+    : '\n' + VICIOS_IA;
+  const full = p.text + suffix;
+  navigator.clipboard.writeText(full)
+    .then(()=>toast('Prompt copiado — inclui regras anti-vício e instrução GAS!','ok'))
+    .catch(()=>toast('Erro ao copiar','er'));
 }
 
 // ── HISTÓRICO ─────────────────────────────────────────────
@@ -3065,74 +3130,105 @@ function exTipoChange(){
 }
 
 function exValidateScript(){
-  const script = v('ex-script');
-  const badge  = document.getElementById('ex-script-badge');
-  const btn    = document.getElementById('ex-btn-enviar');
-  const valDiv = document.getElementById('ex-validation');
+  const script   = v('ex-script');
+  const badge    = document.getElementById('ex-script-badge');
+  const btn      = document.getElementById('ex-btn-enviar');
+  const valDiv   = document.getElementById('ex-validation');
   const valTitle = document.getElementById('ex-val-title');
   const valBody  = document.getElementById('ex-val-body');
   const info     = document.getElementById('ex-val-info');
 
   if(!script || script.length < 50){
-    badge.style.display='none';
-    btn.disabled = true;
-    valDiv.style.display='none';
+    badge.style.display = 'none';
+    btn.disabled        = true;
+    valDiv.style.display= 'none';
     return;
   }
 
-  // Verificações básicas
-  const temStart    = script.includes('START_SCRIPT') || script.includes('var dados') || script.includes('var cfg');
-  const temResultado = script.includes('resultado') || script.includes('docUrl') || script.includes('doc.getUrl');
-  const temDoc      = script.includes('DocumentApp') || script.includes('FormApp') || script.includes('DriveApp');
-  const temErro     = script.includes('SyntaxError') || script.includes('TypeError') || script.includes('Uncaught');
+  valDiv.style.display = 'block';
 
-  valDiv.style.display='block';
+  // ── DETECTAR: colou o texto/apostila em vez do script ──
+  const pareceMarkdown =
+    (script.match(/^#{1,3} /m) && !script.includes('function ') && !script.includes('var ')) ||
+    script.startsWith('# ') || script.startsWith('## ') ||
+    (script.includes('---\n') && !script.includes('function ')) ||
+    (script.includes('**') && script.includes('\n\n') && !script.includes('DocumentApp'));
 
+  if(pareceMarkdown){
+    info.className   = 'info err';
+    valTitle.textContent = '❌ Isso é o conteúdo da apostila, não o script';
+    valBody.innerHTML =
+      'Você colou o <strong>texto gerado pela IA</strong> (apostila em Markdown), mas o campo espera o <strong>código JavaScript/GAS</strong> que a IA devolve quando o prompt pede um script executável.<br><br>' +
+      '<strong>Como obter o script correto:</strong><br>' +
+      '1. Volte ao módulo <strong>Apostila</strong> ou <strong>Lista</strong><br>' +
+      '2. Clique em <strong>"⚡ Gerar Prompt"</strong><br>' +
+      '3. Copie o prompt gerado<br>' +
+      '4. Cole na IA e adicione ao final: <em>"Retorne apenas o código JavaScript/GAS completo entre // --- START_SCRIPT --- e // --- END_SCRIPT ---"</em><br>' +
+      '5. Cole aqui somente o bloco de código (começa com <code>var dados = {</code> ou <code>// ---</code>)';
+    badge.style.display = 'none';
+    btn.disabled        = true;
+    return;
+  }
+
+  // ── DETECTAR: mensagem de erro da IA ──
+  const temErro = script.includes('SyntaxError') || script.includes('TypeError') ||
+                  script.includes('Uncaught') || script.includes('ReferenceError');
   if(temErro){
-    info.className='info err';
-    valTitle.textContent = '⚠️ Script contém mensagens de erro';
-    valBody.textContent  = 'O texto colado parece conter uma mensagem de erro da IA, não um script válido. Peça para a IA gerar novamente.';
-    badge.style.display='none';
-    btn.disabled=true;
+    info.className       = 'info err';
+    valTitle.textContent = '⚠️ Script contém mensagem de erro';
+    valBody.textContent  = 'O texto parece ser uma mensagem de erro, não um script válido. Peça à IA para gerar novamente.';
+    badge.style.display  = 'none';
+    btn.disabled         = true;
     return;
   }
 
-  if(!temDoc){
-    info.className='info warn';
-    valTitle.textContent = '⚠️ Script não encontrado';
-    valBody.textContent  = 'Certifique-se de que colou o código completo devolvido pela IA. Ele deve conter chamadas ao DocumentApp, DriveApp ou FormApp.';
-    badge.style.display='none';
-    btn.disabled=true;
+  // ── VERIFICAR: tem chamadas ao Google Apps Script ──
+  const temDoc      = script.includes('DocumentApp') || script.includes('FormApp') || script.includes('DriveApp');
+  const temResultado = script.includes('resultado') || script.includes('docUrl') || script.includes('doc.getUrl') || script.includes('doc.getId');
+  const temFunc     = script.includes('function ') || script.includes('var doc') || script.includes('var dados');
+
+  if(!temDoc && !temFunc){
+    info.className       = 'info warn';
+    valTitle.textContent = '⚠️ Script GAS não detectado';
+    valBody.innerHTML    =
+      'O código não contém chamadas ao Google Apps Script (DocumentApp, DriveApp, FormApp).<br>' +
+      'Certifique-se de que colou o <strong>código JavaScript completo</strong>, não apenas trechos ou comentários.';
+    badge.style.display  = 'none';
+    btn.disabled         = true;
     return;
   }
 
   if(!temResultado){
-    info.className='info warn';
+    info.className       = 'info warn';
     valTitle.textContent = '⚠️ Script sem retorno de resultado';
-    valBody.textContent  = 'O script deve ter uma variável "resultado" com { success: true, docUrl: "..." }. Solicite à IA que corrija o script.';
-    badge.style.display='none';
-    btn.disabled=true;
+    valBody.innerHTML    =
+      'O script deve terminar com <code>resultado = { success: true, docUrl: "..." }</code>.<br>' +
+      'Solicite à IA que adicione essa linha ao final do script.';
+    badge.style.display  = 'none';
+    btn.disabled         = true;
     return;
   }
 
-  // Script válido
-  info.className='info';
-  const lines = script.split('\n').length;
-  valTitle.textContent = '✅ Script válido detectado';
-  valBody.textContent  = lines + ' linhas · Contém: ' +
-    (temDoc ? 'Drive/Docs/Forms ✓ ' : '') +
-    (temResultado ? '· Resultado ✓' : '');
-  badge.style.display='block';
-  btn.disabled=false;
+  // ── VÁLIDO ──
+  info.className       = 'info';
+  const lines          = script.split('\n').length;
+  valTitle.textContent = '✅ Script GAS válido';
+  valBody.innerHTML    =
+    '<strong>' + lines + ' linhas</strong> · ' +
+    (temDoc       ? 'GAS APIs ✓ ' : '') +
+    (temResultado ? '· Retorno docUrl ✓' : '') +
+    '<br>Clique em <strong>"▶ Executar no GAS"</strong> para gerar o documento.';
+  badge.style.display  = 'block';
+  btn.disabled         = false;
 }
 
 async function exEnviar(){
   const script    = v('ex-script');
-  const tipo      = tgVal('ex-tipo')    || 'Lista';
-  const materia   = v('ex-materia')     || '';
-  const banca     = v('ex-banca')       || '';
-  const versao    = tgVal('ex-versao')  || 'v1';
-  const webAppUrl = v('ex-webapp-url')  || DB.get('webapp_url') || '';
+  const tipo      = tgVal('ex-tipo')   || 'Lista';
+  const materia   = v('ex-materia')   || '';
+  const banca     = v('ex-banca')     || '';
+  const versao    = tgVal('ex-versao')|| 'v1';
+  const webAppUrl = v('ex-webapp-url') || DB.get('webapp_url') || '';
 
   document.getElementById('ex-resultado').style.display = 'none';
   document.getElementById('ex-erro').style.display      = 'none';
@@ -3141,90 +3237,102 @@ async function exEnviar(){
   const token     = DB.get('webapp_token') || 'mea2025';
 
   const payload = {
-    token,
-    script,
+    token, script,
     dados: { tipo: tipoLimpo, materia, banca, versao, assunto: materia, cargo: banca }
   };
 
-  // ── SEM WEB APP: modo manual ──────────────────────────
-  if (!webAppUrl) {
+  // ── SEM WEB APP configurado → modo manual ──────────────
+  if(!webAppUrl){
     document.getElementById('ex-erro').style.display = 'block';
-    document.getElementById('ex-erro-msg').textContent =
-      'Web App não configurado. Use o modo Manual: copie o script e execute no Apps Script.';
-    // navega para aba manual
-    const tabs   = document.querySelectorAll('#p-executar .fblock:nth-child(4) .tabs .tab');
-    const panels = document.querySelectorAll('#p-executar .fblock:nth-child(4) .tab-panel');
-    tabs.forEach(t => t.classList.remove('on'));
-    panels.forEach(p => p.classList.remove('on'));
-    if (tabs[1]) tabs[1].classList.add('on');
-    const mp = document.getElementById('ex-tab-manual');
-    if (mp) mp.classList.add('on');
-    toast('Web App não configurado. Use o modo Manual.', 'er');
+    document.getElementById('ex-erro-msg').innerHTML =
+      'Web App não configurado. Use o <strong>modo Manual</strong> (aba ao lado): copie o script e execute no Apps Script do seu Google Sheets.';
+    const fblock = document.querySelector('#p-executar .fblock:last-of-type');
+    if(fblock){
+      const tabs   = fblock.querySelectorAll('.tabs .tab');
+      const panels = fblock.querySelectorAll('.tab-panel');
+      tabs.forEach(t=>t.classList.remove('on'));
+      panels.forEach(p=>p.classList.remove('on'));
+      if(tabs[1]) tabs[1].classList.add('on');
+      const mp = document.getElementById('ex-tab-manual');
+      if(mp) mp.classList.add('on');
+    }
+    toast('Web App não configurado. Use o modo Manual.','er');
     return;
   }
 
-  // ── COM WEB APP: fetch com CORS ───────────────────────
   const btn = document.getElementById('ex-btn-enviar');
   btn.disabled    = true;
   btn.textContent = '⏳ Executando...';
 
+  // ── FETCH SEM HEADER CUSTOMIZADO ────────────────────────
+  // Enviamos como text/plain simples: não dispara preflight OPTIONS.
+  // O GAS recebe em e.postData.contents e retorna JSON com CORS *.
   try {
-    // O GAS Executor agora retorna JSON com header Access-Control-Allow-Origin: *
-    // Enviamos como text/plain para evitar preflight OPTIONS (GAS não suporta preflight)
-    const response = await fetch(webAppUrl, {
+    const resp = await fetch(webAppUrl, {
       method:  'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body:    JSON.stringify(payload)
+      // SEM headers: o browser envia Content-Type: text/plain por padrão
+      // para body string, evitando o preflight OPTIONS que o GAS bloqueia
     });
 
-    if (!response.ok) {
-      throw new Error('Servidor retornou HTTP ' + response.status + ' — verifique o deploy do Web App.');
+    if(!resp.ok){
+      throw new Error(
+        'GAS retornou HTTP ' + resp.status + '. ' +
+        'Verifique se o deploy está ativo e com acesso "Qualquer pessoa".'
+      );
     }
 
-    const resultado = await response.json();
-
-    if (!resultado.success) {
-      throw new Error(resultado.error || 'O GAS retornou sucesso=false sem mensagem de erro.');
+    let resultado;
+    try {
+      resultado = await resp.json();
+    } catch(_) {
+      throw new Error(
+        'GAS não retornou JSON válido. ' +
+        'Verifique se o script GAS Executor está instalado corretamente.'
+      );
     }
 
-    // ── SUCESSO: exibir link real do documento ──────────
+    if(!resultado.success){
+      throw new Error(resultado.error || 'GAS retornou success=false.');
+    }
+
+    // ── SUCESSO ─────────────────────────────────────────
     const docUrl  = resultado.docUrl  || '';
-    const message = resultado.message || '';
+    const msg     = resultado.message || '';
 
     document.getElementById('ex-resultado').style.display = 'block';
     document.getElementById('ex-doc-url').value           = docUrl;
 
-    const linkEl = document.getElementById('ex-doc-link');
-    linkEl.href        = docUrl || 'https://drive.google.com';
-    linkEl.textContent = docUrl ? 'Abrir documento ↗' : 'Abrir Drive ↗';
+    const linkEl        = document.getElementById('ex-doc-link');
+    linkEl.href         = docUrl || 'https://drive.google.com';
+    linkEl.textContent  = docUrl ? 'Abrir documento ↗' : 'Abrir Drive ↗';
 
     document.getElementById('ex-reg-status').textContent =
-      '✅ Registrado no Sheets · Pasta: Plataforma de Estudos MEA / ' + tipoLimpo + 's';
+      '✅ Registrado no Sheets · ' + tipoLimpo + 's';
 
     document.getElementById('ex-resultado-msg').textContent =
-      (message ? message + '\n\n' : '') +
-      'Tipo: '     + tipoLimpo        + '\n' +
-      'Matéria: '  + (materia || '—') + '\n' +
-      'Banca: '    + (banca   || '—') + '\n' +
-      'Versão: '   + versao            + '\n' +
-      'Data: '     + new Date().toLocaleString('pt-BR');
+      (msg ? msg + '\n\n' : '') +
+      'Tipo: '    + tipoLimpo         + '\n' +
+      'Matéria: ' + (materia  || '—') + '\n' +
+      'Banca: '   + (banca    || '—') + '\n' +
+      'Versão: '  + versao             + '\n' +
+      'Data: '    + new Date().toLocaleString('pt-BR');
 
-    // ── histórico local ─────────────────────────────────
-    historico.push({
-      tipo: tipoLimpo,
-      nome: materia + ' · ' + banca,
-      banca, versao,
-      data:   new Date().toLocaleDateString('pt-BR'),
-      docUrl
-    });
+    historico.push({ tipo: tipoLimpo, nome: materia + ' · ' + banca, banca, versao,
+                     data: new Date().toLocaleDateString('pt-BR'), docUrl });
     DB.set('hist', historico);
     renderHistorico();
-    toast('✅ Documento criado! Link disponível.', 'ok');
+    toast('✅ Documento criado! Veja o link acima.','ok');
 
-  } catch (err) {
+  } catch(err){
+    const msg = err.message || err.toString();
     document.getElementById('ex-erro').style.display = 'block';
-    document.getElementById('ex-erro-msg').textContent = err.message || err.toString();
-    toast('Erro: ' + (err.message || err.toString()), 'er');
+    document.getElementById('ex-erro-msg').innerHTML  = msg +
+      (msg.includes('Failed to fetch') ?
+        '<br><br><strong>Causa provável:</strong> CORS bloqueado pelo Google. ' +
+        'Abra a URL do Web App diretamente no navegador para confirmar que está ativa, ' +
+        'depois use o modo Manual (aba ao lado) como alternativa imediata.' : '');
+    toast('Erro na execução.','er');
   } finally {
     btn.disabled    = false;
     btn.textContent = '▶ Executar no GAS — Gerar Documento';
@@ -3232,37 +3340,62 @@ async function exEnviar(){
 }
 
 async function exTestarWebApp(){
-  const url       = v('ex-webapp-url');
-  const statusEl  = document.getElementById('ex-webapp-status');
-  if (!url) { toast('Cole a URL do Web App primeiro.', 'er'); return; }
+  const url      = v('ex-webapp-url');
+  const statusEl = document.getElementById('ex-webapp-status');
+  if(!url){ toast('Cole a URL do Web App primeiro.','er'); return; }
 
   DB.set('webapp_url', url);
   statusEl.style.display = 'block';
-  statusEl.innerHTML = '<div class="info">⏳ Testando conexão...</div>';
+  statusEl.innerHTML     = '<div class="info">⏳ Testando conexão...</div>';
+
+  // Valida formato mínimo da URL
+  if(!url.includes('script.google.com/macros/s/')){
+    statusEl.innerHTML =
+      '<div class="info err"><strong>❌ URL inválida</strong>' +
+      'A URL deve ser no formato:<br>' +
+      '<code>https://script.google.com/macros/s/AKfy.../exec</code><br>' +
+      'Copie exatamente do painel "Implantar" do Apps Script.</div>';
+    return;
+  }
 
   try {
-    // GET no doGet do GAS — retorna JSON com status, sem preflight
-    const r    = await fetch(url, { method: 'GET' });
-    const data = await r.json();
+    // GET no doGet — sem headers customizados para evitar preflight
+    const r = await fetch(url, { method: 'GET' });
 
-    if (data && data.status) {
-      statusEl.innerHTML =
-        '<div class="info" style="background:rgba(39,130,74,.1);border-color:var(--green);color:var(--green)">' +
-        '<strong>✅ Web App online · CORS OK</strong>' +
-        'Resposta: ' + data.status + ' · Versão: ' + (data.versao || data.version || '—') +
-        '</div>';
-      toast('Web App conectado com CORS!', 'ok');
-    } else {
-      throw new Error('Resposta inesperada: ' + JSON.stringify(data));
+    if(!r.ok){
+      throw new Error('HTTP ' + r.status);
     }
-  } catch (e) {
+
+    let data;
+    try { data = await r.json(); } catch(_){ data = null; }
+
+    if(data && (data.status || data.versao)){
+      statusEl.innerHTML =
+        '<div class="info" style="background:rgba(39,130,74,.1);border-color:var(--green);color:#1A5C30">' +
+        '<strong>✅ Web App online · CORS funcionando</strong><br>' +
+        'Status: ' + (data.status||'OK') + ' · Versão: ' + (data.versao||'—') + '</div>';
+      toast('Conexão OK!','ok');
+    } else {
+      statusEl.innerHTML =
+        '<div class="info warn"><strong>⚠️ Web App respondeu mas sem JSON esperado</strong><br>' +
+        'O GAS Executor pode não estar instalado. Instale o script da aba "Script GAS Executor".</div>';
+    }
+
+  } catch(e){
+    const isCors = e.message === 'Failed to fetch';
     statusEl.innerHTML =
-      '<div class="info err"><strong>❌ Erro na conexão</strong>' +
-      'Detalhe: ' + e.message + '<br><br>' +
-      'Verifique: 1) deploy ativo como Web App · 2) "Executar como: Eu" · ' +
-      '3) "Quem acessa: Qualquer pessoa" · 4) URL copiada corretamente.' +
-      '</div>';
-    toast('Erro de conexão — veja detalhes.', 'er');
+      '<div class="info err"><strong>❌ ' + (isCors ? 'Erro de CORS / acesso' : 'Erro de conexão') + '</strong><br>' +
+      (isCors
+        ? 'O Google está bloqueando a requisição. Siga estes passos:<br><br>' +
+          '<strong>1.</strong> Abra o Apps Script → Implantar → Gerenciar implantações<br>' +
+          '<strong>2.</strong> Confirme: <em>Executar como: <strong>Eu</strong></em><br>' +
+          '<strong>3.</strong> Confirme: <em>Quem tem acesso: <strong>Qualquer pessoa</strong></em><br>' +
+          '<strong>4.</strong> Se mudou algo, crie uma <strong>Nova implantação</strong> (não edite a existente)<br>' +
+          '<strong>5.</strong> Copie a nova URL e cole aqui<br><br>' +
+          '<strong>Enquanto isso:</strong> use o <strong>modo Manual</strong> (aba ao lado) — copie o script e execute diretamente no Apps Script.'
+        : e.message
+      ) + '</div>';
+    toast('Erro de conexão — veja detalhes.','er');
   }
 }
 
