@@ -1506,6 +1506,76 @@ const DB = {
 
 let historico = DB.get('hist') || [];
 
+// ── VÍCIOS DE ESCRITA DA IA ───────────────────────────────
+// Bloco injetado em TODOS os prompts gerados pela plataforma.
+// Instrui a IA a evitar os padrões mais reconhecíveis de texto artificial.
+const VICIOS_IA = `
+════════════════════════════════════════════════════════
+VÍCIOS DE ESCRITA DA IA — PROIBIÇÕES ABSOLUTAS
+════════════════════════════════════════════════════════
+O texto gerado DEVE ser indistinguível de escrita humana especializada.
+Aplique cada regra abaixo sem exceção, em qualquer parte do documento.
+
+1. TÍTULOS COM TODAS AS PALAVRAS EM MAIÚSCULA → PROIBIDO
+   ❌ "Instrumentos Econômicos Para A Proteção Ambiental"
+   ✅ "Instrumentos econômicos para a proteção ambiental"
+   Regra: apenas a primeira palavra e nomes próprios em maiúscula.
+
+2. PERGUNTAS RETÓRICAS REPETIDAS → PROIBIDO como padrão
+   ❌ "A solução? Diversificar." / "O segredo? Estudar mais."
+   ✅ Use afirmativas diretas. Reserve perguntas retóricas para no máximo
+      UMA ocorrência no documento inteiro, se houver razão forte.
+
+3. TÍTULO COM DOIS PONTOS SEGUIDO DE COMPLEMENTO → EVITAR
+   ❌ "PSA: o que você precisa saber"
+   ✅ "O que você precisa saber sobre PSA"
+   Prefira uma frase ou pergunta como título.
+
+4. LETRA MAIÚSCULA APÓS DOIS PONTOS SEM JUSTIFICATIVA → PROIBIDO
+   ❌ "Ela tinha um objetivo claro: Conquistar clientes."
+   ✅ "Ela tinha um objetivo claro: conquistar clientes."
+   Exceção permitida: citação, fala direta, nome próprio ou enumeração formal.
+
+5. VOCABULÁRIO GENÉRICO DE IA → BANIDO
+   Nunca use: insights, crucial, fundamental, essencial, mergulhar,
+   navegar, revolucionário, inspirador, valioso, significativo,
+   "em um mundo", "não apenas... como também", otimizar, contínuo,
+   vital, robusto, holístico, sinérgico, paradigma, ecossistema
+   (no sentido figurado), transformador, impactante, inovador.
+   Substitua por termos técnicos precisos ou descrições concretas.
+
+6. CONTRASTE FALSO "NÃO É ISSO, É AQUILO" → PROIBIDO como padrão
+   ❌ "Não é só guardar dinheiro. É fazer o dinheiro trabalhar."
+   ✅ Desenvolva a ideia em uma frase clara e direta.
+   Use esse recurso no máximo UMA vez, se indispensável.
+
+7. REPETIÇÃO EM ESCADINHA → PROIBIDO como padrão estrutural
+   ❌ "Você não precisa de outro livro.
+       Você não precisa de outro curso.
+       Você só precisa entender o método."
+   ✅ Construa o argumento em prosa coesa, sem anáfora decorativa.
+
+8. ADJETIVOS VAZIOS → SUBSTITUIR por adjetivos que descrevem
+   ❌ "retorno incrível", "estratégia sólida", "crescimento extraordinário"
+   ✅ "retorno de 12% ao ano", "estratégia de hedge cambial", "crescimento
+      de 40% em três trimestres"
+   Se não há dado para quantificar, use comparativo ou qualificador técnico.
+
+9. ESTRUTURA "SEM ISSO. SEM AQUILO. SÓ AQUILO OUTRO." → PROIBIDO
+   ❌ "Sem enrolação. Sem teoria inútil. Só prática."
+   ✅ Apresente o conteúdo diretamente sem anúncios performáticos.
+
+10. REGRA GERAL DE ESCRITA
+    - Frases curtas e diretas; parágrafos com no máximo 4 linhas.
+    - Conectivos variados: portanto, contudo, ainda assim, de fato,
+      por conseguinte, nesse sentido — não repita o mesmo.
+    - Voz ativa preferencial; voz passiva apenas quando o agente
+      for irrelevante ou desconhecido.
+    - Números até dez: por extenso. Acima de 10: algarismos.
+    - Datas e valores sempre precisos; nunca "aproximadamente X" sem
+      fonte ou contexto que justifique a imprecisão.
+════════════════════════════════════════════════════════`;
+
 // ── NAVIGATION ────────────────────────────────────────────
 function nav(el, id){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
@@ -1807,6 +1877,8 @@ REGRAS DO SIMULADO MEA:
    - Alerta reutilizável ("Cuidado com...")
 `:''}
 
+${VICIOS_IA}
+
 ════════════════════════════════════════════
 ENTREGÁVEL ESPERADO
 ════════════════════════════════════════════
@@ -1952,6 +2024,8 @@ ${gab.includes('Completo') ? `1. RESPOSTA CORRETA: alternativa [X]
 4. DIFICULDADE: [N]/5 | TEMA: [subtópico]` : `1. RESPOSTA CORRETA: alternativa [X]
 2. EXPLICAÇÃO RESUMIDA: [1-2 linhas]`}
 
+${VICIOS_IA}
+
 ════════════════════════════════════════════
 ENTREGÁVEL
 ════════════════════════════════════════════
@@ -2034,6 +2108,8 @@ Após o gabarito, forneça:
 
 GABARITO COMENTADO:
 Para cada questão: resposta correta + por que cada errada está errada (1 linha por alternativa).
+
+${VICIOS_IA}
 
 ════════════════════════════════════════════
 ENTREGÁVEL ESPERADO
@@ -2336,6 +2412,8 @@ Um documento Markdown completo com:
 
 IMPORTANTE: Baseie TODA análise nas provas fornecidas. Não invente padrões.
 Se um padrão aparecer em menos de 2 provas, sinalize como "inconclusivo".
+
+${VICIOS_IA}
 
 Data: ${new Date().toLocaleDateString('pt-BR')} | AKE UFT-1.0`;
 
@@ -2921,7 +2999,8 @@ function loadReadyPrompt(key){
   if(!p) return;
   const wrap = document.getElementById('pr-wrap');
   document.getElementById('pr-titulo').textContent = p.title;
-  document.getElementById('pr-prompt').textContent = p.text;
+  // Injeta o bloco de vícios antes do último parágrafo do prompt
+  document.getElementById('pr-prompt').textContent = p.text + '\n' + VICIOS_IA;
   wrap.style.display='block';
   wrap.scrollIntoView({behavior:'smooth',block:'start'});
 }
@@ -2929,7 +3008,8 @@ function loadReadyPrompt(key){
 function copyReadyPrompt(key){
   const p = READY_PROMPTS[key];
   if(!p) return;
-  navigator.clipboard.writeText(p.text).then(()=>toast('Prompt copiado!','ok')).catch(()=>toast('Erro ao copiar','er'));
+  const full = p.text + '\n' + VICIOS_IA;
+  navigator.clipboard.writeText(full).then(()=>toast('Prompt copiado com regras anti-vício!','ok')).catch(()=>toast('Erro ao copiar','er'));
 }
 
 // ── HISTÓRICO ─────────────────────────────────────────────
