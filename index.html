@@ -1213,402 +1213,12 @@ gerarGuia();
       </div>
       <div class="prompt-header" style="margin-top:1rem">
         <span class="prompt-label">Script GAS Executor (Code.gs) — instale uma vez</span>
-        <button class="btn btn-sm btn-outline" onclick="copyEl('ex-gas-executor-code')">📋 Copiar</button>
+        <button class="btn btn-sm btn-outline" onclick="copyGasExecutor()">📋 Copiar</button>
       </div>
-      <div class="prompt-box gas" id="ex-gas-executor-code">// ════════════════════════════════════════════════════════
-// MEA GAS EXECUTOR · Code.gs · AKE UFT-1.0
-// ════════════════════════════════════════════════════════
-// Lei Zero  : IC ≥ 0.9 — verificar estado antes de escrever
-// 2ª Lei    : Build log append-only — nunca remover entradas
-// 3ª Lei    : ε=0 — nenhum arquivo perdido ou corrompido
-// Ciclo     : FETCH → DECODE → EXECUTE → WRITEBACK
-// Operador  : humano é o "collapse operator" — autoriza cada fase
-// ════════════════════════════════════════════════════════
-// Instalação:
-//   1. Cole este código no Apps Script do seu Google Sheets
-//   2. Execute setupExecutor() para configurar pastas e abas
-//   3. Implantar → Nova implantação → Web App
-//      Executar como: "Eu" | Quem acessa: "Qualquer pessoa"
-//   4. Cole a URL gerada na plataforma MEA
-// ════════════════════════════════════════════════════════
-
-// ── CONFIG ───────────────────────────────────────────────
-var MEA_CONFIG = {
-  pastaRaiz: "Plataforma de Estudos MEA",
-  versao:    "AKE UFT-1.0",
-  abas: {
-    "Apostila":        "Apostilas",
-    "Guia":            "Apostilas",
-    "Apostila / Guia de Estudo": "Apostilas",
-    "Lista":           "Listas",
-    "Lista de Exercícios": "Listas",
-    "Questionário":    "Questionários",
-    "Questionário de Desempenho": "Questionários",
-    "Análise de Banca":"Análises",
-    "Análise":         "Análises"
-  }
-};
-
-// ── BUILD LOG (2ª Lei: append-only global por execução) ──
-var _buildLog = [];
-function akeLog(fase, msg) {
-  var entry = "[" + fase + "] " + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "HH:mm:ss") + " — " + msg;
-  _buildLog.push(entry);
-  Logger.log(entry);
-}
-
-// ── WEB APP: doPost ───────────────────────────────────────
-function doPost(e) {
-  _buildLog = [];
-  akeLog("FETCH", "doPost recebido");
-  try {
-    var raw     = e.postData ? e.postData.contents : "{}";
-    var payload = JSON.parse(raw);
-    var token   = PropertiesService.getScriptProperties().getProperty("MEA_TOKEN") || "mea2025";
-
-    if (payload.token !== token) {
-      akeLog("DECODE", "FALHA IC: token inválido");
-      return _jsonResp({ success: false, error: "Token inválido.", ake: _buildLog });
-    }
-
-    akeLog("DECODE", "Token OK · IC ≥ 0.9");
-    var resultado = _cicloAKE(payload.script, payload.dados || {});
-    return _jsonResp(resultado);
-
-  } catch (err) {
-    akeLog("ERRO", err.toString());
-    return _jsonResp({ success: false, error: err.toString(), ake: _buildLog });
-  }
-}
-
-// ── WEB APP: doGet (teste de conexão) ────────────────────
-function doGet(e) {
-  return _jsonResp({
-    status:  "MEA Executor online",
-    versao:  MEA_CONFIG.versao,
-    ake:     "Lei Zero ✓ · 2ª Lei ✓ · 3ª Lei ✓",
-    timestamp: new Date().toISOString()
-  });
-}
-
-function _jsonResp(obj) {
-  return ContentService
-    .createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-// ── CICLO AKE PRINCIPAL ───────────────────────────────────
-function _cicloAKE(scriptCode, dados) {
-
-  // ── FASE 1: FETCH — verificar estado atual do Drive/Sheets ──
-  akeLog("FETCH", "Iniciando verificação de estado (IC)");
-  var ss       = _getSpreadsheet();
-  var subpasta = MEA_CONFIG.abas[dados.tipo] || "Geral";
-  var pasta    = _garantirPasta(MEA_CONFIG.pastaRaiz + "/" + subpasta);
-  akeLog("FETCH", "Pasta confirmada: " + MEA_CONFIG.pastaRaiz + "/" + subpasta);
-  akeLog("FETCH", "IC ≥ 0.9 — estado do Drive verificado");
-
-  // ── FASE 2: DECODE — validar o script recebido ──
-  akeLog("DECODE", "Decodificando script · " + (scriptCode||"").length + " chars");
-  if (!scriptCode || scriptCode.length < 100) {
-    akeLog("DECODE", "TENTATIVA_FALHA: script muito curto ou vazio");
-    return { success: false, error: "Script inválido: muito curto.", ake: _buildLog };
-  }
-  if (!scriptCode.includes("DocumentApp") && !scriptCode.includes("DriveApp")) {
-    akeLog("DECODE", "TENTATIVA_FALHA: sem chamadas GAS detectadas");
-    return { success: false, error: "Script não contém chamadas ao GAS.", ake: _buildLog };
-  }
-  akeLog("DECODE", "Script validado · Chamadas GAS detectadas ✓");
-
-  // ── FASE 3: EXECUTE — executar o script da IA ──
-  akeLog("EXECUTE", "Injetando contexto e executando script");
-  var resultado = _executarScript(scriptCode, dados, pasta);
-
-  if (!resultado.success) {
-    akeLog("EXECUTE", "TENTATIVA_FALHA: " + (resultado.error || resultado.message || "erro desconhecido"));
-    resultado.ake = _buildLog;
-    _registrarNaAba(ss, dados, resultado, "FALHA");
-    return resultado;
-  }
-  akeLog("EXECUTE", "Script executado · docUrl: " + resultado.docUrl);
-
-  // ── FASE 4: WRITEBACK — registrar no Sheets (append-only) ──
-  akeLog("WRITEBACK", "Registrando no Sheets (2ª Lei: append-only)");
-  _registrarNaAba(ss, dados, resultado, "OK");
-  _atualizarDashboard(ss);
-  akeLog("WRITEBACK", "Registro concluído · ε=0 verificado");
-  akeLog("FIM", "✅ Ciclo AKE UFT-1.0 concluído com sucesso");
-
-  resultado.ake = _buildLog;
-  return resultado;
-}
-
-// ── EXECUTAR SCRIPT DA IA ─────────────────────────────────
-function _executarScript(scriptCode, dados, pasta) {
-  try {
-    // Injetar helpers no contexto do script
-    var ctx = {
-      SpreadsheetApp: SpreadsheetApp,
-      DocumentApp:    DocumentApp,
-      DriveApp:       DriveApp,
-      FormApp:        FormApp,
-      Utilities:      Utilities,
-      Session:        Session,
-      Logger:         Logger,
-      dados:          dados,
-      // Helpers AKE disponíveis para o script gerado pela IA
-      akeLog:         function(f,m){ akeLog(f,m); },
-      garantirPasta:  _garantirPasta,
-      moverParaPasta: function(fileId, sub) { return _moverArquivo(fileId, pasta); }
-    };
-
-    var wrapper =
-      "var SpreadsheetApp=ctx.SpreadsheetApp;" +
-      "var DocumentApp=ctx.DocumentApp;" +
-      "var DriveApp=ctx.DriveApp;" +
-      "var FormApp=ctx.FormApp;" +
-      "var Utilities=ctx.Utilities;" +
-      "var Session=ctx.Session;" +
-      "var Logger=ctx.Logger;" +
-      "var dados=ctx.dados;" +
-      "var akeLog=ctx.akeLog;" +
-      "var garantirPasta=ctx.garantirPasta;" +
-      "var moverParaPasta=ctx.moverParaPasta;" +
-      scriptCode +
-      "\n;return typeof resultado!=='undefined'" +
-      "?resultado" +
-      ":{success:false,error:'Script não definiu a variável resultado'};";
-
-    var fn  = new Function("ctx", wrapper);
-    var res = fn(ctx);
-    return res || { success: false, error: "Resultado indefinido" };
-
-  } catch (err) {
-    return { success: false, error: err.toString(), message: "Erro de execução: " + err.toString() };
-  }
-}
-
-// ── REGISTRAR NO SHEETS (2ª Lei: SEMPRE appendRow) ───────
-function _registrarNaAba(ss, dados, resultado, status) {
-  try {
-    var abaNome = MEA_CONFIG.abas[dados.tipo] || "Geral";
-    var aba = ss.getSheetByName(abaNome);
-    if (!aba) {
-      aba = ss.insertSheet(abaNome);
-      var cab = ["ID·AKE","Tipo","Matéria","Banca","Versão","Data","Link Drive","Status","IC","Build Log (últimas 3 entradas)"];
-      aba.getRange(1,1,1,cab.length).setValues([cab])
-         .setBackground("#162B20").setFontColor("#C8A838").setFontWeight("bold");
-      aba.setFrozenRows(1);
-    }
-
-    // IC calculado: 1.0 se sucesso, 0.0 se falha
-    var ic   = resultado.success ? "1.0" : "0.0";
-    var id   = (dados.tipo||"G").charAt(0).toUpperCase() + "-" + new Date().getTime();
-    var logSnippet = _buildLog.slice(-3).join(" | ");  // últimas 3 entradas do build log
-
-    // 2ª Lei: appendRow — nunca sobrescreve, sempre adiciona
-    aba.appendRow([
-      id,
-      dados.tipo    || "Geral",
-      dados.materia || "",
-      dados.banca   || "",
-      dados.versao  || "v1",
-      Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm"),
-      resultado.docUrl || "",
-      status,
-      ic,
-      logSnippet
-    ]);
-
-    akeLog("WRITEBACK", "Linha appended na aba '" + abaNome + "' · ID: " + id + " · IC: " + ic);
-  } catch(e) {
-    akeLog("WRITEBACK·ERRO", "Falha ao registrar no Sheets: " + e.toString());
-  }
-}
-
-// ── DASHBOARD ─────────────────────────────────────────────
-function _atualizarDashboard(ss) {
-  try {
-    var dash = ss.getSheetByName("Dashboard") || ss.insertSheet("Dashboard");
-    dash.clearContents();
-    var abas   = ["Apostilas","Listas","Questionários","Análises"];
-    var rows   = [
-      ["📊 DASHBOARD MEA · AKE UFT-1.0",
-       "Atualizado: " + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm")]
-    ];
-    var totalOk = 0, totalFalha = 0;
-    abas.forEach(function(a){
-      var sh = ss.getSheetByName(a);
-      if (!sh) { rows.push([a, 0, 0, "—"]); return; }
-      var data = sh.getDataRange().getValues();
-      var ok    = data.filter(function(r){ return r[7]==="OK"; }).length;
-      var falha = data.filter(function(r){ return r[7]==="FALHA"; }).length;
-      totalOk += ok; totalFalha += falha;
-      rows.push([a, ok + falha, ok, falha]);
-    });
-    rows.push(["TOTAL", totalOk + totalFalha, totalOk, totalFalha]);
-    rows.push(["IC médio (ε=0 meta)", totalOk + totalFalha > 0 ? (totalOk/(totalOk+totalFalha)).toFixed(2) : "—", "", ""]);
-
-    dash.getRange(1,1,rows.length,4).setValues(rows);
-    dash.getRange(1,1,1,4).setBackground("#162B20").setFontColor("#C8A838").setFontWeight("bold");
-    dash.getRange(2,1,abas.length+1,1).setFontWeight("bold");
-    // Cabeçalho da tabela
-    dash.getRange(1,1,1,4).setValues([["📊 DASHBOARD MEA · AKE UFT-1.0","Atualizado: " + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm"),"",""]]);
-    dash.getRange(2,1,1,4).setValues([["Módulo","Total","✅ OK","❌ Falha"]]).setFontWeight("bold").setBackground("#2A5239").setFontColor("#E4C55A");
-    var dataRows = [];
-    abas.forEach(function(a){
-      var sh = ss.getSheetByName(a);
-      if (!sh) { dataRows.push([a, 0, 0, 0]); return; }
-      var d2 = sh.getDataRange().getValues();
-      var ok2    = d2.filter(function(r){ return r[7]==="OK"; }).length;
-      var falha2 = d2.filter(function(r){ return r[7]==="FALHA"; }).length;
-      dataRows.push([a, ok2 + falha2, ok2, falha2]);
-    });
-    dash.getRange(3,1,dataRows.length,4).setValues(dataRows);
-  } catch(e) { akeLog("DASHBOARD·ERRO", e.toString()); }
-}
-
-// ── HELPERS ───────────────────────────────────────────────
-function _getSpreadsheet() {
-  var id = PropertiesService.getScriptProperties().getProperty("MEA_SHEET_ID");
-  return id ? SpreadsheetApp.openById(id) : SpreadsheetApp.getActiveSpreadsheet();
-}
-
-function _garantirPasta(caminho) {
-  var partes = (caminho||"").split("/").map(function(p){ return p.trim(); }).filter(Boolean);
-  var pasta  = DriveApp.getRootFolder();
-  partes.forEach(function(p){
-    var it = pasta.getFoldersByName(p);
-    pasta  = it.hasNext() ? it.next() : pasta.createFolder(p);
-  });
-  return pasta;
-}
-
-function _moverArquivo(fileId, pastaDestino) {
-  // 3ª Lei: ε=0 — garante que o arquivo chegue ao destino
-  try {
-    var file = DriveApp.getFileById(fileId);
-    pastaDestino.addFile(file);
-    var pais = file.getParents();
-    while (pais.hasNext()) {
-      var pai = pais.next();
-      if (pai.getId() !== pastaDestino.getId()) {
-        try { pai.removeFile(file); } catch(e) {}
-      }
-    }
-    akeLog("WRITEBACK", "ε=0 · Arquivo movido para: " + pastaDestino.getName());
-    return pastaDestino.getUrl();
-  } catch(e) {
-    akeLog("WRITEBACK·ERRO", "Falha ao mover: " + e.toString());
-    return "";
-  }
-}
-
-// ── SETUP INICIAL ─────────────────────────────────────────
-function setupExecutor() {
-  var ui = SpreadsheetApp.getUi();
-  _buildLog = [];
-  akeLog("SETUP", "Iniciando setup AKE UFT-1.0");
-
-  var token = ui.prompt("🔐 Token de segurança:", "mea2025", ui.ButtonSet.OK_CANCEL);
-  if (token.getSelectedButton() !== ui.Button.OK) return;
-  var autor = ui.prompt("👤 Seu nome:", "Candidato MEA", ui.ButtonSet.OK_CANCEL);
-
-  // FETCH: verificar estado atual
-  akeLog("FETCH", "Verificando pastas e abas existentes");
-  var sheetId = SpreadsheetApp.getActiveSpreadsheet().getId();
-
-  PropertiesService.getScriptProperties().setProperties({
-    MEA_TOKEN:    token.getResponseText() || "mea2025",
-    MEA_SHEET_ID: sheetId,
-    MEA_AUTOR:    autor.getSelectedButton() === ui.Button.OK ? autor.getResponseText() : "Candidato MEA",
-    MEA_AKE_VERSAO: "UFT-1.0"
-  });
-
-  // EXECUTE: criar estrutura
-  var subpastas = ["Apostilas","Listas","Questionários","Análises"];
-  subpastas.forEach(function(s){
-    _garantirPasta(MEA_CONFIG.pastaRaiz + "/" + s);
-    akeLog("EXECUTE", "Pasta garantida: " + s);
-  });
-
-  var ss   = SpreadsheetApp.getActiveSpreadsheet();
-  var defs = {
-    "Apostilas":     ["ID·AKE","Tipo","Matéria","Banca","Versão","Data","Link Drive","Status","IC","Build Log"],
-    "Listas":        ["ID·AKE","Tipo","Matéria","Banca","Versão","Data","Link Drive","Status","IC","Build Log"],
-    "Questionários": ["ID·AKE","Tipo","Matéria","Banca","Versão","Data","PDF","Forms","Status","IC"],
-    "Análises":      ["ID·AKE","Banca","Cargo","Matéria","Versão","Data","Link","Status","IC","Build Log"],
-    "Dashboard":     ["Módulo","Total","✅ OK","❌ Falha"]
-  };
-  Object.keys(defs).forEach(function(nome){
-    var sh = ss.getSheetByName(nome) || ss.insertSheet(nome);
-    if (sh.getLastRow() === 0) {
-      sh.getRange(1,1,1,defs[nome].length).setValues([defs[nome]])
-        .setBackground("#162B20").setFontColor("#C8A838").setFontWeight("bold");
-      sh.setFrozenRows(1);
-    }
-    akeLog("EXECUTE", "Aba garantida: " + nome);
-  });
-
-  // WRITEBACK: registrar setup no log
-  akeLog("WRITEBACK", "Setup concluído · IC=1.0 · ε=0");
-  Logger.log("Build log setup:\n" + _buildLog.join("\n"));
-
-  ui.alert(
-    "✅ MEA Executor AKE UFT-1.0 configurado!\n\n" +
-    "Leis AKE aplicadas:\n" +
-    "  Lei Zero: IC ≥ 0.9 ✓\n" +
-    "  2ª Lei: Build log append-only ✓\n" +
-    "  3ª Lei: ε=0 ✓\n\n" +
-    "Próximo passo:\n" +
-    "Implantar → Nova implantação → Web App\n" +
-    "  Executar como: Eu\n" +
-    "  Quem acessa: Qualquer pessoa\n\n" +
-    "Cole a URL na plataforma MEA."
-  );
-}
-
-// ── MENU ──────────────────────────────────────────────────
-function onOpen() {
-  try {
-    SpreadsheetApp.getUi()
-      .createMenu("🎯 MEA · AKE UFT-1.0")
-      .addItem("⚙ Configurar Executor",       "setupExecutor")
-      .addItem("📊 Atualizar Dashboard",       "_atualizarDashboard")
-      .addItem("🔍 Verificar IC do Drive",     "verificarIC")
-      .addToUi();
-  } catch(e) {}
-}
-
-// ── VERIFICAR IC (Lei Zero — utilitário manual) ───────────
-function verificarIC() {
-  _buildLog = [];
-  akeLog("FETCH", "Verificação manual de IC iniciada");
-  var ui = SpreadsheetApp.getUi();
-  var ss = _getSpreadsheet();
-  var subpastas = ["Apostilas","Listas","Questionários","Análises"];
-  var relatorio = "VERIFICAÇÃO IC — AKE UFT-1.0\n\n";
-  var icTotal = 0, n = 0;
-
-  subpastas.forEach(function(s){
-    var sh = ss.getSheetByName(s);
-    if (!sh) { relatorio += s + ": aba não encontrada\n"; return; }
-    var data = sh.getDataRange().getValues();
-    var ok   = data.filter(function(r){ return r[7]==="OK"; }).length;
-    var tot  = Math.max(1, data.length - 1);
-    var ic   = (ok/tot).toFixed(2);
-    icTotal += parseFloat(ic); n++;
-    relatorio += s + ": IC=" + ic + " (" + ok + "/" + tot + " OK)\n";
-    akeLog("FETCH", s + " · IC=" + ic);
-  });
-
-  var icMedio = n > 0 ? (icTotal/n).toFixed(2) : "—";
-  relatorio += "\nIC médio geral: " + icMedio;
-  relatorio += icMedio >= 0.9 ? " ✅ (≥ 0.9 — Lei Zero satisfeita)" : " ⚠️ (< 0.9 — revisar falhas)";
-
-  akeLog("FETCH", "IC médio: " + icMedio);
-  ui.alert(relatorio);
-}</div>
+      <div class="prompt-box gas" id="ex-gas-executor-display" style="min-height:180px;cursor:default">
+        <span style="color:rgba(248,243,234,.4);font-style:italic">Clique em "📋 Copiar" para copiar o script completo do GAS Executor AKE UFT-1.0</span>
+      </div>
+</div>
     </div>
   </div>
 
@@ -1646,8 +1256,6 @@ function verificarIC() {
       Se o Web App não está configurado: use o modo Manual (aba "Via Apps Script (manual)") — copie o script e execute diretamente no Apps Script. · Se o script tem erro de sintaxe: revise o código devolvido pela IA ou solicite uma nova versão.
     </div>
   </div>
-
-</div>
 
 </main>
 
@@ -3850,6 +3458,26 @@ function switchTabLocal(btn, targetId){
 }
 
 
+// ── COPY GAS EXECUTOR ────────────────────────────────────
+// Lê o Code.gs do <script type="text/plain"> — evita que < no código GAS
+// quebre o parser HTML (foi o que causava "nada funciona ao clicar").
+function copyGasExecutor(){
+  const el = document.getElementById('gas-executor-src');
+  if(!el){ toast('Script GAS não encontrado.','er'); return; }
+  const code = el.textContent || el.innerText;
+  const disp = document.getElementById('ex-gas-executor-display');
+  if(disp) disp.textContent = code.substring(0,500) + '\n...\n[script completo copiado — ' + code.split('\n').length + ' linhas]';
+  navigator.clipboard.writeText(code)
+    .then(()=> toast('✅ GAS Executor AKE UFT-1.0 copiado! Cole no Code.gs do Apps Script.','ok'))
+    .catch(()=>{
+      const ta = document.createElement('textarea');
+      ta.value = code; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy');
+      document.body.removeChild(ta);
+      toast('✅ GAS Executor copiado!','ok');
+    });
+}
+
 function v(id){ const el=document.getElementById(id); return el?(el.value||'').trim():'' }
 
 // ── MODAL ────────────────────────────────────────────────
@@ -3867,6 +3495,402 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('ap-concurso-fields').classList.add('show');
   document.getElementById('ls-concurso-fields').classList.add('show');
 });
+</script>
+
+<script type="text/plain" id="gas-executor-src">
+// MEA GAS EXECUTOR · Code.gs · AKE UFT-1.0
+// ════════════════════════════════════════════════════════
+// Lei Zero  : IC ≥ 0.9 — verificar estado antes de escrever
+// 2ª Lei    : Build log append-only — nunca remover entradas
+// 3ª Lei    : ε=0 — nenhum arquivo perdido ou corrompido
+// Ciclo     : FETCH → DECODE → EXECUTE → WRITEBACK
+// Operador  : humano é o "collapse operator" — autoriza cada fase
+// ════════════════════════════════════════════════════════
+// Instalação:
+//   1. Cole este código no Apps Script do seu Google Sheets
+//   2. Execute setupExecutor() para configurar pastas e abas
+//   3. Implantar → Nova implantação → Web App
+//      Executar como: "Eu" | Quem acessa: "Qualquer pessoa"
+//   4. Cole a URL gerada na plataforma MEA
+// ════════════════════════════════════════════════════════
+
+// ── CONFIG ───────────────────────────────────────────────
+var MEA_CONFIG = {
+  pastaRaiz: "Plataforma de Estudos MEA",
+  versao:    "AKE UFT-1.0",
+  abas: {
+    "Apostila":        "Apostilas",
+    "Guia":            "Apostilas",
+    "Apostila / Guia de Estudo": "Apostilas",
+    "Lista":           "Listas",
+    "Lista de Exercícios": "Listas",
+    "Questionário":    "Questionários",
+    "Questionário de Desempenho": "Questionários",
+    "Análise de Banca":"Análises",
+    "Análise":         "Análises"
+  }
+};
+
+// ── BUILD LOG (2ª Lei: append-only global por execução) ──
+var _buildLog = [];
+function akeLog(fase, msg) {
+  var entry = "[" + fase + "] " + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "HH:mm:ss") + " — " + msg;
+  _buildLog.push(entry);
+  Logger.log(entry);
+}
+
+// ── WEB APP: doPost ───────────────────────────────────────
+function doPost(e) {
+  _buildLog = [];
+  akeLog("FETCH", "doPost recebido");
+  try {
+    var raw     = e.postData ? e.postData.contents : "{}";
+    var payload = JSON.parse(raw);
+    var token   = PropertiesService.getScriptProperties().getProperty("MEA_TOKEN") || "mea2025";
+
+    if (payload.token !== token) {
+      akeLog("DECODE", "FALHA IC: token inválido");
+      return _jsonResp({ success: false, error: "Token inválido.", ake: _buildLog });
+    }
+
+    akeLog("DECODE", "Token OK · IC ≥ 0.9");
+    var resultado = _cicloAKE(payload.script, payload.dados || {});
+    return _jsonResp(resultado);
+
+  } catch (err) {
+    akeLog("ERRO", err.toString());
+    return _jsonResp({ success: false, error: err.toString(), ake: _buildLog });
+  }
+}
+
+// ── WEB APP: doGet (teste de conexão) ────────────────────
+function doGet(e) {
+  return _jsonResp({
+    status:  "MEA Executor online",
+    versao:  MEA_CONFIG.versao,
+    ake:     "Lei Zero ✓ · 2ª Lei ✓ · 3ª Lei ✓",
+    timestamp: new Date().toISOString()
+  });
+}
+
+function _jsonResp(obj) {
+  return ContentService
+    .createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// ── CICLO AKE PRINCIPAL ───────────────────────────────────
+function _cicloAKE(scriptCode, dados) {
+
+  // ── FASE 1: FETCH — verificar estado atual do Drive/Sheets ──
+  akeLog("FETCH", "Iniciando verificação de estado (IC)");
+  var ss       = _getSpreadsheet();
+  var subpasta = MEA_CONFIG.abas[dados.tipo] || "Geral";
+  var pasta    = _garantirPasta(MEA_CONFIG.pastaRaiz + "/" + subpasta);
+  akeLog("FETCH", "Pasta confirmada: " + MEA_CONFIG.pastaRaiz + "/" + subpasta);
+  akeLog("FETCH", "IC ≥ 0.9 — estado do Drive verificado");
+
+  // ── FASE 2: DECODE — validar o script recebido ──
+  akeLog("DECODE", "Decodificando script · " + (scriptCode||"").length + " chars");
+  if (!scriptCode || scriptCode.length < 100) {
+    akeLog("DECODE", "TENTATIVA_FALHA: script muito curto ou vazio");
+    return { success: false, error: "Script inválido: muito curto.", ake: _buildLog };
+  }
+  if (!scriptCode.includes("DocumentApp") && !scriptCode.includes("DriveApp")) {
+    akeLog("DECODE", "TENTATIVA_FALHA: sem chamadas GAS detectadas");
+    return { success: false, error: "Script não contém chamadas ao GAS.", ake: _buildLog };
+  }
+  akeLog("DECODE", "Script validado · Chamadas GAS detectadas ✓");
+
+  // ── FASE 3: EXECUTE — executar o script da IA ──
+  akeLog("EXECUTE", "Injetando contexto e executando script");
+  var resultado = _executarScript(scriptCode, dados, pasta);
+
+  if (!resultado.success) {
+    akeLog("EXECUTE", "TENTATIVA_FALHA: " + (resultado.error || resultado.message || "erro desconhecido"));
+    resultado.ake = _buildLog;
+    _registrarNaAba(ss, dados, resultado, "FALHA");
+    return resultado;
+  }
+  akeLog("EXECUTE", "Script executado · docUrl: " + resultado.docUrl);
+
+  // ── FASE 4: WRITEBACK — registrar no Sheets (append-only) ──
+  akeLog("WRITEBACK", "Registrando no Sheets (2ª Lei: append-only)");
+  _registrarNaAba(ss, dados, resultado, "OK");
+  _atualizarDashboard(ss);
+  akeLog("WRITEBACK", "Registro concluído · ε=0 verificado");
+  akeLog("FIM", "✅ Ciclo AKE UFT-1.0 concluído com sucesso");
+
+  resultado.ake = _buildLog;
+  return resultado;
+}
+
+// ── EXECUTAR SCRIPT DA IA ─────────────────────────────────
+function _executarScript(scriptCode, dados, pasta) {
+  try {
+    // Injetar helpers no contexto do script
+    var ctx = {
+      SpreadsheetApp: SpreadsheetApp,
+      DocumentApp:    DocumentApp,
+      DriveApp:       DriveApp,
+      FormApp:        FormApp,
+      Utilities:      Utilities,
+      Session:        Session,
+      Logger:         Logger,
+      dados:          dados,
+      // Helpers AKE disponíveis para o script gerado pela IA
+      akeLog:         function(f,m){ akeLog(f,m); },
+      garantirPasta:  _garantirPasta,
+      moverParaPasta: function(fileId, sub) { return _moverArquivo(fileId, pasta); }
+    };
+
+    var wrapper =
+      "var SpreadsheetApp=ctx.SpreadsheetApp;" +
+      "var DocumentApp=ctx.DocumentApp;" +
+      "var DriveApp=ctx.DriveApp;" +
+      "var FormApp=ctx.FormApp;" +
+      "var Utilities=ctx.Utilities;" +
+      "var Session=ctx.Session;" +
+      "var Logger=ctx.Logger;" +
+      "var dados=ctx.dados;" +
+      "var akeLog=ctx.akeLog;" +
+      "var garantirPasta=ctx.garantirPasta;" +
+      "var moverParaPasta=ctx.moverParaPasta;" +
+      scriptCode +
+      "\n;return typeof resultado!=='undefined'" +
+      "?resultado" +
+      ":{success:false,error:'Script não definiu a variável resultado'};";
+
+    var fn  = new Function("ctx", wrapper);
+    var res = fn(ctx);
+    return res || { success: false, error: "Resultado indefinido" };
+
+  } catch (err) {
+    return { success: false, error: err.toString(), message: "Erro de execução: " + err.toString() };
+  }
+}
+
+// ── REGISTRAR NO SHEETS (2ª Lei: SEMPRE appendRow) ───────
+function _registrarNaAba(ss, dados, resultado, status) {
+  try {
+    var abaNome = MEA_CONFIG.abas[dados.tipo] || "Geral";
+    var aba = ss.getSheetByName(abaNome);
+    if (!aba) {
+      aba = ss.insertSheet(abaNome);
+      var cab = ["ID·AKE","Tipo","Matéria","Banca","Versão","Data","Link Drive","Status","IC","Build Log (últimas 3 entradas)"];
+      aba.getRange(1,1,1,cab.length).setValues([cab])
+         .setBackground("#162B20").setFontColor("#C8A838").setFontWeight("bold");
+      aba.setFrozenRows(1);
+    }
+
+    // IC calculado: 1.0 se sucesso, 0.0 se falha
+    var ic   = resultado.success ? "1.0" : "0.0";
+    var id   = (dados.tipo||"G").charAt(0).toUpperCase() + "-" + new Date().getTime();
+    var logSnippet = _buildLog.slice(-3).join(" | ");  // últimas 3 entradas do build log
+
+    // 2ª Lei: appendRow — nunca sobrescreve, sempre adiciona
+    aba.appendRow([
+      id,
+      dados.tipo    || "Geral",
+      dados.materia || "",
+      dados.banca   || "",
+      dados.versao  || "v1",
+      Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm"),
+      resultado.docUrl || "",
+      status,
+      ic,
+      logSnippet
+    ]);
+
+    akeLog("WRITEBACK", "Linha appended na aba '" + abaNome + "' · ID: " + id + " · IC: " + ic);
+  } catch(e) {
+    akeLog("WRITEBACK·ERRO", "Falha ao registrar no Sheets: " + e.toString());
+  }
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────
+function _atualizarDashboard(ss) {
+  try {
+    var dash = ss.getSheetByName("Dashboard") || ss.insertSheet("Dashboard");
+    dash.clearContents();
+    var abas   = ["Apostilas","Listas","Questionários","Análises"];
+    var rows   = [
+      ["📊 DASHBOARD MEA · AKE UFT-1.0",
+       "Atualizado: " + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm")]
+    ];
+    var totalOk = 0, totalFalha = 0;
+    abas.forEach(function(a){
+      var sh = ss.getSheetByName(a);
+      if (!sh) { rows.push([a, 0, 0, "—"]); return; }
+      var data = sh.getDataRange().getValues();
+      var ok    = data.filter(function(r){ return r[7]==="OK"; }).length;
+      var falha = data.filter(function(r){ return r[7]==="FALHA"; }).length;
+      totalOk += ok; totalFalha += falha;
+      rows.push([a, ok + falha, ok, falha]);
+    });
+    rows.push(["TOTAL", totalOk + totalFalha, totalOk, totalFalha]);
+    rows.push(["IC médio (ε=0 meta)", totalOk + totalFalha > 0 ? (totalOk/(totalOk+totalFalha)).toFixed(2) : "—", "", ""]);
+
+    dash.getRange(1,1,rows.length,4).setValues(rows);
+    dash.getRange(1,1,1,4).setBackground("#162B20").setFontColor("#C8A838").setFontWeight("bold");
+    dash.getRange(2,1,abas.length+1,1).setFontWeight("bold");
+    // Cabeçalho da tabela
+    dash.getRange(1,1,1,4).setValues([["📊 DASHBOARD MEA · AKE UFT-1.0","Atualizado: " + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm"),"",""]]);
+    dash.getRange(2,1,1,4).setValues([["Módulo","Total","✅ OK","❌ Falha"]]).setFontWeight("bold").setBackground("#2A5239").setFontColor("#E4C55A");
+    var dataRows = [];
+    abas.forEach(function(a){
+      var sh = ss.getSheetByName(a);
+      if (!sh) { dataRows.push([a, 0, 0, 0]); return; }
+      var d2 = sh.getDataRange().getValues();
+      var ok2    = d2.filter(function(r){ return r[7]==="OK"; }).length;
+      var falha2 = d2.filter(function(r){ return r[7]==="FALHA"; }).length;
+      dataRows.push([a, ok2 + falha2, ok2, falha2]);
+    });
+    dash.getRange(3,1,dataRows.length,4).setValues(dataRows);
+  } catch(e) { akeLog("DASHBOARD·ERRO", e.toString()); }
+}
+
+// ── HELPERS ───────────────────────────────────────────────
+function _getSpreadsheet() {
+  var id = PropertiesService.getScriptProperties().getProperty("MEA_SHEET_ID");
+  return id ? SpreadsheetApp.openById(id) : SpreadsheetApp.getActiveSpreadsheet();
+}
+
+function _garantirPasta(caminho) {
+  var partes = (caminho||"").split("/").map(function(p){ return p.trim(); }).filter(Boolean);
+  var pasta  = DriveApp.getRootFolder();
+  partes.forEach(function(p){
+    var it = pasta.getFoldersByName(p);
+    pasta  = it.hasNext() ? it.next() : pasta.createFolder(p);
+  });
+  return pasta;
+}
+
+function _moverArquivo(fileId, pastaDestino) {
+  // 3ª Lei: ε=0 — garante que o arquivo chegue ao destino
+  try {
+    var file = DriveApp.getFileById(fileId);
+    pastaDestino.addFile(file);
+    var pais = file.getParents();
+    while (pais.hasNext()) {
+      var pai = pais.next();
+      if (pai.getId() !== pastaDestino.getId()) {
+        try { pai.removeFile(file); } catch(e) {}
+      }
+    }
+    akeLog("WRITEBACK", "ε=0 · Arquivo movido para: " + pastaDestino.getName());
+    return pastaDestino.getUrl();
+  } catch(e) {
+    akeLog("WRITEBACK·ERRO", "Falha ao mover: " + e.toString());
+    return "";
+  }
+}
+
+// ── SETUP INICIAL ─────────────────────────────────────────
+function setupExecutor() {
+  var ui = SpreadsheetApp.getUi();
+  _buildLog = [];
+  akeLog("SETUP", "Iniciando setup AKE UFT-1.0");
+
+  var token = ui.prompt("🔐 Token de segurança:", "mea2025", ui.ButtonSet.OK_CANCEL);
+  if (token.getSelectedButton() !== ui.Button.OK) return;
+  var autor = ui.prompt("👤 Seu nome:", "Candidato MEA", ui.ButtonSet.OK_CANCEL);
+
+  // FETCH: verificar estado atual
+  akeLog("FETCH", "Verificando pastas e abas existentes");
+  var sheetId = SpreadsheetApp.getActiveSpreadsheet().getId();
+
+  PropertiesService.getScriptProperties().setProperties({
+    MEA_TOKEN:    token.getResponseText() || "mea2025",
+    MEA_SHEET_ID: sheetId,
+    MEA_AUTOR:    autor.getSelectedButton() === ui.Button.OK ? autor.getResponseText() : "Candidato MEA",
+    MEA_AKE_VERSAO: "UFT-1.0"
+  });
+
+  // EXECUTE: criar estrutura
+  var subpastas = ["Apostilas","Listas","Questionários","Análises"];
+  subpastas.forEach(function(s){
+    _garantirPasta(MEA_CONFIG.pastaRaiz + "/" + s);
+    akeLog("EXECUTE", "Pasta garantida: " + s);
+  });
+
+  var ss   = SpreadsheetApp.getActiveSpreadsheet();
+  var defs = {
+    "Apostilas":     ["ID·AKE","Tipo","Matéria","Banca","Versão","Data","Link Drive","Status","IC","Build Log"],
+    "Listas":        ["ID·AKE","Tipo","Matéria","Banca","Versão","Data","Link Drive","Status","IC","Build Log"],
+    "Questionários": ["ID·AKE","Tipo","Matéria","Banca","Versão","Data","PDF","Forms","Status","IC"],
+    "Análises":      ["ID·AKE","Banca","Cargo","Matéria","Versão","Data","Link","Status","IC","Build Log"],
+    "Dashboard":     ["Módulo","Total","✅ OK","❌ Falha"]
+  };
+  Object.keys(defs).forEach(function(nome){
+    var sh = ss.getSheetByName(nome) || ss.insertSheet(nome);
+    if (sh.getLastRow() === 0) {
+      sh.getRange(1,1,1,defs[nome].length).setValues([defs[nome]])
+        .setBackground("#162B20").setFontColor("#C8A838").setFontWeight("bold");
+      sh.setFrozenRows(1);
+    }
+    akeLog("EXECUTE", "Aba garantida: " + nome);
+  });
+
+  // WRITEBACK: registrar setup no log
+  akeLog("WRITEBACK", "Setup concluído · IC=1.0 · ε=0");
+  Logger.log("Build log setup:\n" + _buildLog.join("\n"));
+
+  ui.alert(
+    "✅ MEA Executor AKE UFT-1.0 configurado!\n\n" +
+    "Leis AKE aplicadas:\n" +
+    "  Lei Zero: IC ≥ 0.9 ✓\n" +
+    "  2ª Lei: Build log append-only ✓\n" +
+    "  3ª Lei: ε=0 ✓\n\n" +
+    "Próximo passo:\n" +
+    "Implantar → Nova implantação → Web App\n" +
+    "  Executar como: Eu\n" +
+    "  Quem acessa: Qualquer pessoa\n\n" +
+    "Cole a URL na plataforma MEA."
+  );
+}
+
+// ── MENU ──────────────────────────────────────────────────
+function onOpen() {
+  try {
+    SpreadsheetApp.getUi()
+      .createMenu("🎯 MEA · AKE UFT-1.0")
+      .addItem("⚙ Configurar Executor",       "setupExecutor")
+      .addItem("📊 Atualizar Dashboard",       "_atualizarDashboard")
+      .addItem("🔍 Verificar IC do Drive",     "verificarIC")
+      .addToUi();
+  } catch(e) {}
+}
+
+// ── VERIFICAR IC (Lei Zero — utilitário manual) ───────────
+function verificarIC() {
+  _buildLog = [];
+  akeLog("FETCH", "Verificação manual de IC iniciada");
+  var ui = SpreadsheetApp.getUi();
+  var ss = _getSpreadsheet();
+  var subpastas = ["Apostilas","Listas","Questionários","Análises"];
+  var relatorio = "VERIFICAÇÃO IC — AKE UFT-1.0\n\n";
+  var icTotal = 0, n = 0;
+
+  subpastas.forEach(function(s){
+    var sh = ss.getSheetByName(s);
+    if (!sh) { relatorio += s + ": aba não encontrada\n"; return; }
+    var data = sh.getDataRange().getValues();
+    var ok   = data.filter(function(r){ return r[7]==="OK"; }).length;
+    var tot  = Math.max(1, data.length - 1);
+    var ic   = (ok/tot).toFixed(2);
+    icTotal += parseFloat(ic); n++;
+    relatorio += s + ": IC=" + ic + " (" + ok + "/" + tot + " OK)\n";
+    akeLog("FETCH", s + " · IC=" + ic);
+  });
+
+  var icMedio = n > 0 ? (icTotal/n).toFixed(2) : "—";
+  relatorio += "\nIC médio geral: " + icMedio;
+  relatorio += icMedio >= 0.9 ? " ✅ (≥ 0.9 — Lei Zero satisfeita)" : " ⚠️ (< 0.9 — revisar falhas)";
+
+  akeLog("FETCH", "IC médio: " + icMedio);
+  ui.alert(relatorio);
+}
 </script>
 </body>
 </html>
