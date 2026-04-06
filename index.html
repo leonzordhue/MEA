@@ -3459,8 +3459,8 @@ function switchTabLocal(btn, targetId){
 
 
 // ── COPY GAS EXECUTOR ────────────────────────────────────
-// Lê o Code.gs do <script type="text/plain"> — evita que < no código GAS
-// quebre o parser HTML (foi o que causava "nada funciona ao clicar").
+// Lê o Code.gs armazenado em tag inerte (evita que < no código GAS
+// quebre o parser HTML — foi a causa raiz do bug "nada funciona ao clicar").
 function copyGasExecutor(){
   const el = document.getElementById('gas-executor-src');
   if(!el){ toast('Script GAS não encontrado.','er'); return; }
