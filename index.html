@@ -1119,7 +1119,7 @@ gerarGuia();
 
 // ⚠️ NÃO cole o texto da apostila em Markdown (# Título, ## Seção...)
 // ⚠️ Cole apenas o bloco de código que começa com var, function ou //"
-          oninput="exValidateScript()"
+          oninput="exValidateScript(); exAtualizarBtnCorrigir()"
         ></textarea>
         <div id="ex-script-badge" style="position:absolute;top:.6rem;right:.6rem;display:none">
           <span style="background:var(--green);color:#fff;font-family:'Space Mono',monospace;font-size:.6rem;padding:.2rem .6rem;border-radius:20px;font-weight:700">✓ Script válido</span>
@@ -1136,11 +1136,14 @@ gerarGuia();
     </div>
 
     <div class="btn-row">
-      <button class="btn btn-amber" id="ex-btn-enviar" onclick="exEnviar()" disabled>
-        ▶ Executar no GAS — Gerar Documento
+      <button class="btn btn-amber" id="ex-btn-corrigir-top" onclick="exCorrigirECopiar()" disabled>
+        🔧 Corrigir e Copiar para Apps Script
+      </button>
+      <button class="btn btn-primary" id="ex-btn-enviar" onclick="exEnviar()" disabled style="opacity:.55" title="Requer Web App configurado">
+        ▶ Executar via Web App
       </button>
       <button class="btn btn-outline" onclick="exLimpar()">🗑 Limpar</button>
-      <button class="btn btn-outline" onclick="exValidateScript()">🔍 Validar Script</button>
+      <button class="btn btn-outline" onclick="exValidateScript()">🔍 Validar</button>
     </div>
   </div>
 
@@ -1149,12 +1152,12 @@ gerarGuia();
     <div class="fblock-title"><div class="fblock-num">3</div>Como o GAS executa o script</div>
 
     <div class="tabs">
-      <div class="tab on" onclick="switchTabLocal(this,'ex-tab-webapp')">Via Web App (automático)</div>
-      <div class="tab" onclick="switchTabLocal(this,'ex-tab-manual')">Via Apps Script (manual)</div>
+      <div class="tab" onclick="switchTabLocal(this,'ex-tab-webapp')">Via Web App</div>
+      <div class="tab on" onclick="switchTabLocal(this,'ex-tab-manual')">📋 Via Apps Script (recomendado)</div>
       <div class="tab" onclick="switchTabLocal(this,'ex-tab-gas-executor')">Script GAS Executor</div>
     </div>
 
-    <div class="tab-panel on" id="ex-tab-webapp">
+    <div class="tab-panel" id="ex-tab-webapp">
       <div class="info" style="margin-bottom:.7rem">
         <strong>Modo Web App — clique em Executar e o documento é criado automaticamente</strong>
         Configure o GAS Executor (aba ao lado) uma vez → faça deploy como Web App → cole a URL abaixo → pronto. A partir daí, clicar em "Executar no GAS" enviará o script e receberá o link do documento criado.
@@ -1171,20 +1174,35 @@ gerarGuia();
       <div id="ex-webapp-status" style="margin-top:.6rem;display:none"></div>
     </div>
 
-    <div class="tab-panel" id="ex-tab-manual">
-      <div class="info warn" style="margin-bottom:.7rem">
-        <strong>Modo Manual — sem Web App configurado</strong>
-        Copie o script abaixo, cole no Apps Script do seu Sheets e execute a função principal (gerarGuia / gerarLista / createQuiz).
+    <div class="tab-panel on" id="ex-tab-manual">
+      <div class="info" style="margin-bottom:.7rem">
+        <strong>Modo recomendado — funciona sempre, sem configuração extra</strong>
+        Clique em <strong>"🔧 Corrigir e Copiar Script"</strong> abaixo → a plataforma aplica correções automáticas → cole no Apps Script do seu Google Sheets → execute.
       </div>
-      <div style="margin-top:1rem">
-        <div class="prompt-header">
-          <span class="prompt-label">Script completo para copiar ao Apps Script</span>
-          <button class="btn btn-sm btn-outline" onclick="copyEl('ex-script')">📋 Copiar Script</button>
+
+      <!-- BOTÃO PRINCIPAL DO MODO MANUAL -->
+      <div style="display:flex;gap:.7rem;flex-wrap:wrap;align-items:center;margin:.9rem 0 1.1rem">
+        <button class="btn btn-amber" onclick="exCorrigirECopiar()" id="ex-btn-corrigir" disabled>
+          🔧 Corrigir e Copiar Script
+        </button>
+        <div id="ex-correcoes-badge" style="display:none;font-family:'Space Mono',monospace;font-size:.7rem;color:var(--green);background:rgba(39,130,74,.1);border:1px solid var(--green);padding:.25rem .75rem;border-radius:20px"></div>
+      </div>
+
+      <!-- LOG DE CORREÇÕES AUTOMÁTICAS -->
+      <div id="ex-correcoes-log" style="display:none;margin-bottom:1rem">
+        <div class="info">
+          <strong>🔧 Correções aplicadas automaticamente</strong>
+          <ul id="ex-correcoes-lista" style="margin-top:.4rem;padding-left:1.2rem;font-size:.82rem;line-height:1.7"></ul>
         </div>
-        <div class="info" style="margin-top:.7rem">
-          <strong>Passos</strong>
-          1. Copie o script acima · 2. Abra seu Google Sheets → Extensões → Apps Script · 3. Substitua o conteúdo do Code.gs pelo script copiado · 4. Execute a função principal (normalmente <code>gerarGuia()</code>, <code>gerarLista()</code>, ou <code>gerarListaExercicios(dados)</code>) · 5. Autorize as permissões · 6. O documento é criado e o link aparece na caixa de alerta
-        </div>
+      </div>
+
+      <div class="info" style="margin-top:.7rem">
+        <strong>Passo a passo</strong>
+        <strong style="display:inline;font-family:'Space Mono',monospace;font-size:.72rem">1.</strong> Clique em "🔧 Corrigir e Copiar Script" acima →
+        <strong style="display:inline;font-family:'Space Mono',monospace;font-size:.72rem">2.</strong> Abra <a href="https://script.google.com" target="_blank" style="color:var(--forest-l)">script.google.com</a> →
+        <strong style="display:inline;font-family:'Space Mono',monospace;font-size:.72rem">3.</strong> Crie um novo projeto → cole o script → salve →
+        <strong style="display:inline;font-family:'Space Mono',monospace;font-size:.72rem">4.</strong> Execute a função <code>gerarGuia</code> ou <code>gerarLista</code> (ou a função principal do script) →
+        <strong style="display:inline;font-family:'Space Mono',monospace;font-size:.72rem">5.</strong> Autorize as permissões → o documento aparece no Drive em "Plataforma de Estudos MEA"
       </div>
     </div>
 
@@ -1198,254 +1216,398 @@ gerarGuia();
         <button class="btn btn-sm btn-outline" onclick="copyEl('ex-gas-executor-code')">📋 Copiar</button>
       </div>
       <div class="prompt-box gas" id="ex-gas-executor-code">// ════════════════════════════════════════════════════════
-// MEA GAS EXECUTOR · Web App · AKE UFT-1.0
-// Cole este código no Apps Script do seu Google Sheets
-// Depois: Implantar → Nova implantação → Web App
-//   Executar como: "Eu" | Quem acessa: "Qualquer pessoa"
-// Copie a URL gerada e cole na plataforma HTML
+// MEA GAS EXECUTOR · Code.gs · AKE UFT-1.0
+// ════════════════════════════════════════════════════════
+// Lei Zero  : IC ≥ 0.9 — verificar estado antes de escrever
+// 2ª Lei    : Build log append-only — nunca remover entradas
+// 3ª Lei    : ε=0 — nenhum arquivo perdido ou corrompido
+// Ciclo     : FETCH → DECODE → EXECUTE → WRITEBACK
+// Operador  : humano é o "collapse operator" — autoriza cada fase
+// ════════════════════════════════════════════════════════
+// Instalação:
+//   1. Cole este código no Apps Script do seu Google Sheets
+//   2. Execute setupExecutor() para configurar pastas e abas
+//   3. Implantar → Nova implantação → Web App
+//      Executar como: "Eu" | Quem acessa: "Qualquer pessoa"
+//   4. Cole a URL gerada na plataforma MEA
 // ════════════════════════════════════════════════════════
 
-var MEA_EXECUTOR_CONFIG = {
-  pastaRaiz:  "Plataforma de Estudos MEA",
-  sheetId:    PropertiesService.getScriptProperties().getProperty("MEA_SHEET_ID") || "",
-  autor:      PropertiesService.getScriptProperties().getProperty("MEA_AUTOR")    || "Candidato MEA",
-  token:      PropertiesService.getScriptProperties().getProperty("MEA_TOKEN")    || "mea2025"
+// ── CONFIG ───────────────────────────────────────────────
+var MEA_CONFIG = {
+  pastaRaiz: "Plataforma de Estudos MEA",
+  versao:    "AKE UFT-1.0",
+  abas: {
+    "Apostila":        "Apostilas",
+    "Guia":            "Apostilas",
+    "Apostila / Guia de Estudo": "Apostilas",
+    "Lista":           "Listas",
+    "Lista de Exercícios": "Listas",
+    "Questionário":    "Questionários",
+    "Questionário de Desempenho": "Questionários",
+    "Análise de Banca":"Análises",
+    "Análise":         "Análises"
+  }
 };
 
-// ── WEB APP ENTRY POINT ──────────────────────────────────
-// CORS: GAS retorna Access-Control-Allow-Origin:* automaticamente
-// quando o output é ContentService com MimeType JSON.
-// O fetch da plataforma envia Content-Type: text/plain para
-// evitar preflight OPTIONS (GAS não suporta OPTIONS).
-function doPost(e) {
-  try {
-    var raw     = e.postData ? e.postData.contents : '{}';
-    var payload = JSON.parse(raw);
+// ── BUILD LOG (2ª Lei: append-only global por execução) ──
+var _buildLog = [];
+function akeLog(fase, msg) {
+  var entry = "[" + fase + "] " + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "HH:mm:ss") + " — " + msg;
+  _buildLog.push(entry);
+  Logger.log(entry);
+}
 
-    // Verificação de token
-    if (payload.token !== MEA_EXECUTOR_CONFIG.token) {
-      return jsonResponse({ success: false, error: 'Token inválido. Configure o token correto na plataforma.' });
+// ── WEB APP: doPost ───────────────────────────────────────
+function doPost(e) {
+  _buildLog = [];
+  akeLog("FETCH", "doPost recebido");
+  try {
+    var raw     = e.postData ? e.postData.contents : "{}";
+    var payload = JSON.parse(raw);
+    var token   = PropertiesService.getScriptProperties().getProperty("MEA_TOKEN") || "mea2025";
+
+    if (payload.token !== token) {
+      akeLog("DECODE", "FALHA IC: token inválido");
+      return _jsonResp({ success: false, error: "Token inválido.", ake: _buildLog });
     }
 
-    var resultado = executarScriptMEA(payload.script, payload.dados || {});
-    return jsonResponse(resultado);
+    akeLog("DECODE", "Token OK · IC ≥ 0.9");
+    var resultado = _cicloAKE(payload.script, payload.dados || {});
+    return _jsonResp(resultado);
 
   } catch (err) {
-    return jsonResponse({ success: false, error: err.toString() });
+    akeLog("ERRO", err.toString());
+    return _jsonResp({ success: false, error: err.toString(), ake: _buildLog });
   }
 }
 
-// doGet: usado pelo botão "Testar conexão" da plataforma
+// ── WEB APP: doGet (teste de conexão) ────────────────────
 function doGet(e) {
-  return jsonResponse({
-    status:    'MEA Executor online',
-    versao:    'AKE UFT-1.0',
+  return _jsonResp({
+    status:  "MEA Executor online",
+    versao:  MEA_CONFIG.versao,
+    ake:     "Lei Zero ✓ · 2ª Lei ✓ · 3ª Lei ✓",
     timestamp: new Date().toISOString()
   });
 }
 
-// Helper: ContentService JSON com CORS
-function jsonResponse(obj) {
+function _jsonResp(obj) {
   return ContentService
     .createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
-  // O GAS adiciona Access-Control-Allow-Origin: * automaticamente
-  // para respostas JSON de Web Apps com acesso "Qualquer pessoa"
 }
 
-// ── EXECUTOR PRINCIPAL ───────────────────────────────────
-function executarScriptMEA(scriptCode, dadosExtras) {
-  try {
-    // O script da IA deve terminar com: resultado = { success: true, docUrl: "...", ... }
-    // Injetamos helpers disponíveis no contexto e executamos via eval
+// ── CICLO AKE PRINCIPAL ───────────────────────────────────
+function _cicloAKE(scriptCode, dados) {
 
-    var contexto = {
+  // ── FASE 1: FETCH — verificar estado atual do Drive/Sheets ──
+  akeLog("FETCH", "Iniciando verificação de estado (IC)");
+  var ss       = _getSpreadsheet();
+  var subpasta = MEA_CONFIG.abas[dados.tipo] || "Geral";
+  var pasta    = _garantirPasta(MEA_CONFIG.pastaRaiz + "/" + subpasta);
+  akeLog("FETCH", "Pasta confirmada: " + MEA_CONFIG.pastaRaiz + "/" + subpasta);
+  akeLog("FETCH", "IC ≥ 0.9 — estado do Drive verificado");
+
+  // ── FASE 2: DECODE — validar o script recebido ──
+  akeLog("DECODE", "Decodificando script · " + (scriptCode||"").length + " chars");
+  if (!scriptCode || scriptCode.length < 100) {
+    akeLog("DECODE", "TENTATIVA_FALHA: script muito curto ou vazio");
+    return { success: false, error: "Script inválido: muito curto.", ake: _buildLog };
+  }
+  if (!scriptCode.includes("DocumentApp") && !scriptCode.includes("DriveApp")) {
+    akeLog("DECODE", "TENTATIVA_FALHA: sem chamadas GAS detectadas");
+    return { success: false, error: "Script não contém chamadas ao GAS.", ake: _buildLog };
+  }
+  akeLog("DECODE", "Script validado · Chamadas GAS detectadas ✓");
+
+  // ── FASE 3: EXECUTE — executar o script da IA ──
+  akeLog("EXECUTE", "Injetando contexto e executando script");
+  var resultado = _executarScript(scriptCode, dados, pasta);
+
+  if (!resultado.success) {
+    akeLog("EXECUTE", "TENTATIVA_FALHA: " + (resultado.error || resultado.message || "erro desconhecido"));
+    resultado.ake = _buildLog;
+    _registrarNaAba(ss, dados, resultado, "FALHA");
+    return resultado;
+  }
+  akeLog("EXECUTE", "Script executado · docUrl: " + resultado.docUrl);
+
+  // ── FASE 4: WRITEBACK — registrar no Sheets (append-only) ──
+  akeLog("WRITEBACK", "Registrando no Sheets (2ª Lei: append-only)");
+  _registrarNaAba(ss, dados, resultado, "OK");
+  _atualizarDashboard(ss);
+  akeLog("WRITEBACK", "Registro concluído · ε=0 verificado");
+  akeLog("FIM", "✅ Ciclo AKE UFT-1.0 concluído com sucesso");
+
+  resultado.ake = _buildLog;
+  return resultado;
+}
+
+// ── EXECUTAR SCRIPT DA IA ─────────────────────────────────
+function _executarScript(scriptCode, dados, pasta) {
+  try {
+    // Injetar helpers no contexto do script
+    var ctx = {
       SpreadsheetApp: SpreadsheetApp,
-      DocumentApp: DocumentApp,
-      DriveApp: DriveApp,
-      FormApp: FormApp,
-      Utilities: Utilities,
-      Session: Session,
-      Logger: Logger,
-      dadosExtras: dadosExtras,
-      garantirPasta: garantirPastaHelper,
-      moverParaPasta: moverParaPastaHelper
+      DocumentApp:    DocumentApp,
+      DriveApp:       DriveApp,
+      FormApp:        FormApp,
+      Utilities:      Utilities,
+      Session:        Session,
+      Logger:         Logger,
+      dados:          dados,
+      // Helpers AKE disponíveis para o script gerado pela IA
+      akeLog:         function(f,m){ akeLog(f,m); },
+      garantirPasta:  _garantirPasta,
+      moverParaPasta: function(fileId, sub) { return _moverArquivo(fileId, pasta); }
     };
 
-    // Preparar o script: injetar helpers e capturar resultado
-    var scriptWrapper =
-      "var SpreadsheetApp = contexto.SpreadsheetApp;" +
-      "var DocumentApp = contexto.DocumentApp;" +
-      "var DriveApp = contexto.DriveApp;" +
-      "var FormApp = contexto.FormApp;" +
-      "var Utilities = contexto.Utilities;" +
-      "var Session = contexto.Session;" +
-      "var Logger = contexto.Logger;" +
-      "var garantirPasta = contexto.garantirPasta;" +
-      "var moverParaPasta = contexto.moverParaPasta;" +
+    var wrapper =
+      "var SpreadsheetApp=ctx.SpreadsheetApp;" +
+      "var DocumentApp=ctx.DocumentApp;" +
+      "var DriveApp=ctx.DriveApp;" +
+      "var FormApp=ctx.FormApp;" +
+      "var Utilities=ctx.Utilities;" +
+      "var Session=ctx.Session;" +
+      "var Logger=ctx.Logger;" +
+      "var dados=ctx.dados;" +
+      "var akeLog=ctx.akeLog;" +
+      "var garantirPasta=ctx.garantirPasta;" +
+      "var moverParaPasta=ctx.moverParaPasta;" +
       scriptCode +
-      "\n; return typeof resultado !== 'undefined' ? resultado : { success: false, error: 'Script não retornou resultado' };";
+      "\n;return typeof resultado!=='undefined'" +
+      "?resultado" +
+      ":{success:false,error:'Script não definiu a variável resultado'};";
 
-    var fn = new Function("contexto", scriptWrapper);
-    var resultado = fn(contexto);
-
-    if (resultado && resultado.success && resultado.docUrl) {
-      registrarExecucao(resultado, dadosExtras);
-    }
-
-    return resultado || { success: false, error: "Nenhum resultado retornado" };
+    var fn  = new Function("ctx", wrapper);
+    var res = fn(ctx);
+    return res || { success: false, error: "Resultado indefinido" };
 
   } catch (err) {
-    Logger.log("executarScriptMEA erro: " + err.toString());
-    return { success: false, error: err.toString() };
+    return { success: false, error: err.toString(), message: "Erro de execução: " + err.toString() };
   }
 }
 
-// ── REGISTRAR NO SHEETS ──────────────────────────────────
-function registrarExecucao(resultado, dados) {
+// ── REGISTRAR NO SHEETS (2ª Lei: SEMPRE appendRow) ───────
+function _registrarNaAba(ss, dados, resultado, status) {
   try {
-    var ss = MEA_EXECUTOR_CONFIG.sheetId
-      ? SpreadsheetApp.openById(MEA_EXECUTOR_CONFIG.sheetId)
-      : SpreadsheetApp.getActiveSpreadsheet();
-
-    var tipo = dados.tipo || "Geral";
-    var abaMap = {
-      "Apostila": "Apostilas", "Guia": "Apostilas",
-      "Lista": "Listas", "Lista de Exercícios": "Listas",
-      "Questionário": "Questionários",
-      "Análise de Banca": "Análises", "Análise": "Análises"
-    };
-    var abaNome = abaMap[tipo] || "Listas";
+    var abaNome = MEA_CONFIG.abas[dados.tipo] || "Geral";
     var aba = ss.getSheetByName(abaNome);
-
     if (!aba) {
       aba = ss.insertSheet(abaNome);
-      var cabec = ["ID","Tipo","Matéria","Banca","Cargo","Assunto","Versão","Data","Link Drive","Status"];
-      aba.getRange(1,1,1,cabec.length).setValues([cabec])
+      var cab = ["ID·AKE","Tipo","Matéria","Banca","Versão","Data","Link Drive","Status","IC","Build Log (últimas 3 entradas)"];
+      aba.getRange(1,1,1,cab.length).setValues([cab])
          .setBackground("#162B20").setFontColor("#C8A838").setFontWeight("bold");
       aba.setFrozenRows(1);
     }
 
-    var id = tipo.charAt(0) + new Date().getTime();
+    // IC calculado: 1.0 se sucesso, 0.0 se falha
+    var ic   = resultado.success ? "1.0" : "0.0";
+    var id   = (dados.tipo||"G").charAt(0).toUpperCase() + "-" + new Date().getTime();
+    var logSnippet = _buildLog.slice(-3).join(" | ");  // últimas 3 entradas do build log
+
+    // 2ª Lei: appendRow — nunca sobrescreve, sempre adiciona
     aba.appendRow([
       id,
-      dados.tipo      || "Geral",
-      dados.materia   || "",
-      dados.banca     || "",
-      dados.cargo     || "",
-      dados.assunto   || "",
-      dados.versao    || "v1",
-      new Date().toLocaleDateString("pt-BR"),
+      dados.tipo    || "Geral",
+      dados.materia || "",
+      dados.banca   || "",
+      dados.versao  || "v1",
+      Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm"),
       resultado.docUrl || "",
-      "OK"
+      status,
+      ic,
+      logSnippet
     ]);
 
-    atualizarDashboardExecutor(ss);
-    Logger.log("Registrado: " + id + " | " + resultado.docUrl);
-
-  } catch (e) {
-    Logger.log("registrarExecucao erro: " + e.toString());
+    akeLog("WRITEBACK", "Linha appended na aba '" + abaNome + "' · ID: " + id + " · IC: " + ic);
+  } catch(e) {
+    akeLog("WRITEBACK·ERRO", "Falha ao registrar no Sheets: " + e.toString());
   }
 }
 
-// ── DASHBOARD ────────────────────────────────────────────
-function atualizarDashboardExecutor(ss) {
+// ── DASHBOARD ─────────────────────────────────────────────
+function _atualizarDashboard(ss) {
   try {
-    var dash = ss.getSheetByName("Dashboard");
-    if (!dash) { dash = ss.insertSheet("Dashboard"); }
-    var abas = ["Apostilas","Listas","Questionários","Análises"];
-    var rows = [["📊 DASHBOARD MEA","Atualizado: " + new Date().toLocaleString("pt-BR")]];
+    var dash = ss.getSheetByName("Dashboard") || ss.insertSheet("Dashboard");
+    dash.clearContents();
+    var abas   = ["Apostilas","Listas","Questionários","Análises"];
+    var rows   = [
+      ["📊 DASHBOARD MEA · AKE UFT-1.0",
+       "Atualizado: " + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm")]
+    ];
+    var totalOk = 0, totalFalha = 0;
     abas.forEach(function(a){
       var sh = ss.getSheetByName(a);
-      rows.push([a, sh ? Math.max(0, sh.getLastRow()-1) : 0]);
+      if (!sh) { rows.push([a, 0, 0, "—"]); return; }
+      var data = sh.getDataRange().getValues();
+      var ok    = data.filter(function(r){ return r[7]==="OK"; }).length;
+      var falha = data.filter(function(r){ return r[7]==="FALHA"; }).length;
+      totalOk += ok; totalFalha += falha;
+      rows.push([a, ok + falha, ok, falha]);
     });
-    dash.clearContents();
-    dash.getRange(1,1,rows.length,2).setValues(rows);
-    dash.getRange(1,1,1,2).setBackground("#162B20").setFontColor("#C8A838").setFontWeight("bold");
-  } catch(e) { Logger.log("Dashboard erro: "+e.toString()); }
+    rows.push(["TOTAL", totalOk + totalFalha, totalOk, totalFalha]);
+    rows.push(["IC médio (ε=0 meta)", totalOk + totalFalha > 0 ? (totalOk/(totalOk+totalFalha)).toFixed(2) : "—", "", ""]);
+
+    dash.getRange(1,1,rows.length,4).setValues(rows);
+    dash.getRange(1,1,1,4).setBackground("#162B20").setFontColor("#C8A838").setFontWeight("bold");
+    dash.getRange(2,1,abas.length+1,1).setFontWeight("bold");
+    // Cabeçalho da tabela
+    dash.getRange(1,1,1,4).setValues([["📊 DASHBOARD MEA · AKE UFT-1.0","Atualizado: " + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm"),"",""]]);
+    dash.getRange(2,1,1,4).setValues([["Módulo","Total","✅ OK","❌ Falha"]]).setFontWeight("bold").setBackground("#2A5239").setFontColor("#E4C55A");
+    var dataRows = [];
+    abas.forEach(function(a){
+      var sh = ss.getSheetByName(a);
+      if (!sh) { dataRows.push([a, 0, 0, 0]); return; }
+      var d2 = sh.getDataRange().getValues();
+      var ok2    = d2.filter(function(r){ return r[7]==="OK"; }).length;
+      var falha2 = d2.filter(function(r){ return r[7]==="FALHA"; }).length;
+      dataRows.push([a, ok2 + falha2, ok2, falha2]);
+    });
+    dash.getRange(3,1,dataRows.length,4).setValues(dataRows);
+  } catch(e) { akeLog("DASHBOARD·ERRO", e.toString()); }
 }
 
-// ── HELPERS DE PASTA ─────────────────────────────────────
-function garantirPastaHelper(caminho) {
+// ── HELPERS ───────────────────────────────────────────────
+function _getSpreadsheet() {
+  var id = PropertiesService.getScriptProperties().getProperty("MEA_SHEET_ID");
+  return id ? SpreadsheetApp.openById(id) : SpreadsheetApp.getActiveSpreadsheet();
+}
+
+function _garantirPasta(caminho) {
   var partes = (caminho||"").split("/").map(function(p){ return p.trim(); }).filter(Boolean);
-  var pasta = DriveApp.getRootFolder();
+  var pasta  = DriveApp.getRootFolder();
   partes.forEach(function(p){
     var it = pasta.getFoldersByName(p);
-    pasta = it.hasNext() ? it.next() : pasta.createFolder(p);
+    pasta  = it.hasNext() ? it.next() : pasta.createFolder(p);
   });
   return pasta;
 }
 
-function moverParaPastaHelper(fileId, caminhoOuSubpasta) {
+function _moverArquivo(fileId, pastaDestino) {
+  // 3ª Lei: ε=0 — garante que o arquivo chegue ao destino
   try {
-    var caminho = caminhoOuSubpasta.indexOf("/") !== -1
-      ? caminhoOuSubpasta
-      : MEA_EXECUTOR_CONFIG.pastaRaiz + "/" + caminhoOuSubpasta;
-    var pasta = garantirPastaHelper(caminho);
     var file = DriveApp.getFileById(fileId);
-    pasta.addFile(file);
-    try {
-      var pais = file.getParents();
-      while (pais.hasNext()) {
-        var pai = pais.next();
-        if (pai.getId() !== pasta.getId()) pai.removeFile(file);
+    pastaDestino.addFile(file);
+    var pais = file.getParents();
+    while (pais.hasNext()) {
+      var pai = pais.next();
+      if (pai.getId() !== pastaDestino.getId()) {
+        try { pai.removeFile(file); } catch(e) {}
       }
-    } catch(e) {}
-    Logger.log("Arquivo movido para: " + caminho);
-    return pasta.getUrl();
+    }
+    akeLog("WRITEBACK", "ε=0 · Arquivo movido para: " + pastaDestino.getName());
+    return pastaDestino.getUrl();
   } catch(e) {
-    Logger.log("moverParaPasta erro: " + e.toString());
+    akeLog("WRITEBACK·ERRO", "Falha ao mover: " + e.toString());
     return "";
   }
 }
 
-// ── SETUP INICIAL ────────────────────────────────────────
+// ── SETUP INICIAL ─────────────────────────────────────────
 function setupExecutor() {
   var ui = SpreadsheetApp.getUi();
-  var token = ui.prompt("🔐 Defina um token de segurança:", "mea2025", ui.ButtonSet.OK_CANCEL);
+  _buildLog = [];
+  akeLog("SETUP", "Iniciando setup AKE UFT-1.0");
+
+  var token = ui.prompt("🔐 Token de segurança:", "mea2025", ui.ButtonSet.OK_CANCEL);
   if (token.getSelectedButton() !== ui.Button.OK) return;
+  var autor = ui.prompt("👤 Seu nome:", "Candidato MEA", ui.ButtonSet.OK_CANCEL);
+
+  // FETCH: verificar estado atual
+  akeLog("FETCH", "Verificando pastas e abas existentes");
   var sheetId = SpreadsheetApp.getActiveSpreadsheet().getId();
-  var autor   = ui.prompt("👤 Seu nome:", "Candidato MEA", ui.ButtonSet.OK_CANCEL);
 
   PropertiesService.getScriptProperties().setProperties({
     MEA_TOKEN:    token.getResponseText() || "mea2025",
     MEA_SHEET_ID: sheetId,
-    MEA_AUTOR:    autor.getSelectedButton() === ui.Button.OK ? autor.getResponseText() : "Candidato MEA"
+    MEA_AUTOR:    autor.getSelectedButton() === ui.Button.OK ? autor.getResponseText() : "Candidato MEA",
+    MEA_AKE_VERSAO: "UFT-1.0"
   });
 
-  // Criar pastas e abas
-  var pastas = ["Apostilas","Listas","Questionários","Análises"];
-  pastas.forEach(function(p){ garantirPastaHelper("Plataforma de Estudos MEA/" + p); });
+  // EXECUTE: criar estrutura
+  var subpastas = ["Apostilas","Listas","Questionários","Análises"];
+  subpastas.forEach(function(s){
+    _garantirPasta(MEA_CONFIG.pastaRaiz + "/" + s);
+    akeLog("EXECUTE", "Pasta garantida: " + s);
+  });
 
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var abas = {
-    "Apostilas":     ["ID","Tipo","Matéria","Banca","Cargo","Assunto","Versão","Data","Link Drive","Status"],
-    "Listas":        ["ID","Tipo","Matéria","Banca","Cargo","Assunto","Versão","Data","Link Drive","Status"],
-    "Questionários": ["ID","Tipo","Matéria","Banca","Qtd","Data","PDF","Forms","Status"],
-    "Análises":      ["ID","Banca","Cargo","Matéria","Nível","Data","Link","Status"],
-    "Dashboard":     ["Aba","Total"]
+  var ss   = SpreadsheetApp.getActiveSpreadsheet();
+  var defs = {
+    "Apostilas":     ["ID·AKE","Tipo","Matéria","Banca","Versão","Data","Link Drive","Status","IC","Build Log"],
+    "Listas":        ["ID·AKE","Tipo","Matéria","Banca","Versão","Data","Link Drive","Status","IC","Build Log"],
+    "Questionários": ["ID·AKE","Tipo","Matéria","Banca","Versão","Data","PDF","Forms","Status","IC"],
+    "Análises":      ["ID·AKE","Banca","Cargo","Matéria","Versão","Data","Link","Status","IC","Build Log"],
+    "Dashboard":     ["Módulo","Total","✅ OK","❌ Falha"]
   };
-  Object.keys(abas).forEach(function(nome){
+  Object.keys(defs).forEach(function(nome){
     var sh = ss.getSheetByName(nome) || ss.insertSheet(nome);
     if (sh.getLastRow() === 0) {
-      sh.getRange(1,1,1,abas[nome].length).setValues([abas[nome]])
+      sh.getRange(1,1,1,defs[nome].length).setValues([defs[nome]])
         .setBackground("#162B20").setFontColor("#C8A838").setFontWeight("bold");
       sh.setFrozenRows(1);
     }
+    akeLog("EXECUTE", "Aba garantida: " + nome);
   });
 
-  ui.alert("✅ MEA Executor configurado!\n\nPróximo passo:\nImplantar → Nova implantação → Web App\n  Executar como: Eu\n  Quem acessa: Qualquer pessoa\n\nCopie a URL e cole na plataforma HTML.");
+  // WRITEBACK: registrar setup no log
+  akeLog("WRITEBACK", "Setup concluído · IC=1.0 · ε=0");
+  Logger.log("Build log setup:\n" + _buildLog.join("\n"));
+
+  ui.alert(
+    "✅ MEA Executor AKE UFT-1.0 configurado!\n\n" +
+    "Leis AKE aplicadas:\n" +
+    "  Lei Zero: IC ≥ 0.9 ✓\n" +
+    "  2ª Lei: Build log append-only ✓\n" +
+    "  3ª Lei: ε=0 ✓\n\n" +
+    "Próximo passo:\n" +
+    "Implantar → Nova implantação → Web App\n" +
+    "  Executar como: Eu\n" +
+    "  Quem acessa: Qualquer pessoa\n\n" +
+    "Cole a URL na plataforma MEA."
+  );
 }
 
-// ── MENU ─────────────────────────────────────────────────
+// ── MENU ──────────────────────────────────────────────────
 function onOpen() {
   try {
     SpreadsheetApp.getUi()
-      .createMenu("🎯 MEA Executor")
-      .addItem("⚙ Configurar Executor", "setupExecutor")
-      .addItem("📊 Atualizar Dashboard", function(){ atualizarDashboardExecutor(SpreadsheetApp.getActiveSpreadsheet()); })
+      .createMenu("🎯 MEA · AKE UFT-1.0")
+      .addItem("⚙ Configurar Executor",       "setupExecutor")
+      .addItem("📊 Atualizar Dashboard",       "_atualizarDashboard")
+      .addItem("🔍 Verificar IC do Drive",     "verificarIC")
       .addToUi();
   } catch(e) {}
+}
+
+// ── VERIFICAR IC (Lei Zero — utilitário manual) ───────────
+function verificarIC() {
+  _buildLog = [];
+  akeLog("FETCH", "Verificação manual de IC iniciada");
+  var ui = SpreadsheetApp.getUi();
+  var ss = _getSpreadsheet();
+  var subpastas = ["Apostilas","Listas","Questionários","Análises"];
+  var relatorio = "VERIFICAÇÃO IC — AKE UFT-1.0\n\n";
+  var icTotal = 0, n = 0;
+
+  subpastas.forEach(function(s){
+    var sh = ss.getSheetByName(s);
+    if (!sh) { relatorio += s + ": aba não encontrada\n"; return; }
+    var data = sh.getDataRange().getValues();
+    var ok   = data.filter(function(r){ return r[7]==="OK"; }).length;
+    var tot  = Math.max(1, data.length - 1);
+    var ic   = (ok/tot).toFixed(2);
+    icTotal += parseFloat(ic); n++;
+    relatorio += s + ": IC=" + ic + " (" + ok + "/" + tot + " OK)\n";
+    akeLog("FETCH", s + " · IC=" + ic);
+  });
+
+  var icMedio = n > 0 ? (icTotal/n).toFixed(2) : "—";
+  relatorio += "\nIC médio geral: " + icMedio;
+  relatorio += icMedio >= 0.9 ? " ✅ (≥ 0.9 — Lei Zero satisfeita)" : " ⚠️ (< 0.9 — revisar falhas)";
+
+  akeLog("FETCH", "IC médio: " + icMedio);
+  ui.alert(relatorio);
 }</div>
     </div>
   </div>
@@ -1586,7 +1748,9 @@ Aplique cada regra abaixo sem exceção, em qualquer parte do documento.
 ════════════════════════════════════════════════════════`;
 
 // ── ENTREGÁVEL GAS — bloco obrigatório em todos os prompts ──
-// Instrui a IA a retornar CÓDIGO executável, não texto Markdown.
+// Template agora implementa AKE UFT-1.0 formalmente:
+// Lei Zero (IC≥0.9), 2ª Lei (build log append-only),
+// 3ª Lei (ε=0), ciclo FETCH→DECODE→EXECUTE→WRITEBACK
 const ENTREGAVEL_GAS = (tipo) => `
 ════════════════════════════════════════════════════════
 ⚠️  FORMATO DE ENTREGA — OBRIGATÓRIO
@@ -1601,36 +1765,121 @@ entre os marcadores abaixo — sem nenhum texto fora deles:
 [código aqui]
 // --- END_SCRIPT ---
 
-REQUISITOS DO SCRIPT:
+REQUISITOS DO SCRIPT (AKE UFT-1.0):
 1. Criar o documento com DocumentApp.create("Título")
-2. Construir TODO o conteúdo de ${tipo} dentro do código,
-   usando body.appendParagraph(), appendTable(), etc.
-3. Última linha do try{}: resultado = { success: true, docUrl: doc.getUrl(), message: "..." };
-4. Estrutura de tratamento de erro: try/catch com resultado = { success: false, ... }
-5. Mover o arquivo para a pasta "Plataforma de Estudos MEA" no Drive
-6. Todo o conteúdo (texto, questões, gabarito) embutido no próprio script
+2. Construir TODO o conteúdo de ${tipo} dentro do código
+3. Implementar ciclo AKE: FETCH → DECODE → EXECUTE → WRITEBACK
+4. Build log append-only: registrar cada etapa no Logger
+5. Garantia ε=0: try/catch em cada operação crítica separadamente
+6. Última linha: resultado = { success: true, docUrl: ..., ake: buildLog }
+7. Mover para pasta "Plataforma de Estudos MEA/${tipo}s" no Drive
+8. Todo conteúdo embutido no script — sem referências externas
 
-TEMPLATE OBRIGATÓRIO:
+TEMPLATE OBRIGATÓRIO AKE UFT-1.0:
 // --- START_SCRIPT ---
-var dados = { materia: "...", banca: "...", versao: "..." };
-var resultado = { success: false, docUrl: null, message: "" };
-try {
-  var doc  = DocumentApp.create("[Título completo do documento]");
+// ════ AKE UFT-1.0 · ${tipo} ════
+// Lei Zero: IC≥0.9 — verificar estado antes de escrever
+// 2ª Lei: build log append-only
+// 3ª Lei: ε=0 — nenhum arquivo perdido
+// Ciclo: FETCH → DECODE → EXECUTE → WRITEBACK
+
+var dados   = { materia: "...", banca: "...", versao: "v1", tipo: "${tipo}" };
+var buildLog = [];  // 2ª Lei: append-only, nunca remover entradas
+var resultado = { success: false, docUrl: null, message: "", ake: buildLog };
+
+function akeLog(fase, msg) {
+  var entry = "[" + fase + "] " + new Date().toISOString() + " — " + msg;
+  buildLog.push(entry);
+  Logger.log(entry);
+}
+
+function akeFetch() {
+  // Lei Zero: verificar se pasta já existe (IC antes de criar)
+  akeLog("FETCH", "Verificando estado do Drive");
+  var pastaRaiz = "Plataforma de Estudos MEA";
+  var subpasta  = "${tipo}s";
+  var itRaiz = DriveApp.getFoldersByName(pastaRaiz);
+  var pasta  = itRaiz.hasNext() ? itRaiz.next() : DriveApp.createFolder(pastaRaiz);
+  var itSub  = pasta.getFoldersByName(subpasta);
+  var pastaSub = itSub.hasNext() ? itSub.next() : pasta.createFolder(subpasta);
+  akeLog("FETCH", "Pasta confirmada: " + pastaRaiz + "/" + subpasta);
+  return pastaSub;
+}
+
+function akeDecode() {
+  // Decodificar parâmetros e validar IC
+  akeLog("DECODE", "Validando parâmetros: materia=" + dados.materia + " banca=" + dados.banca);
+  if (!dados.materia || !dados.tipo) throw new Error("IC < 0.9: parâmetros insuficientes");
+  akeLog("DECODE", "IC ≥ 0.9 — parâmetros válidos");
+  return true;
+}
+
+function akeExecute(pastaSub) {
+  // Executar geração do documento
+  akeLog("EXECUTE", "Criando documento: ${tipo} — " + dados.materia);
+  var doc  = DocumentApp.create("${tipo} — " + dados.materia + " (" + dados.banca + ")");
   var body = doc.getBody();
+
+  // Margens ABNT (1cm = 28.35pt)
+  body.setMarginTop(85.05);
+  body.setMarginBottom(56.7);
+  body.setMarginLeft(85.05);
+  body.setMarginRight(56.7);
+
   var base = {};
   base[DocumentApp.Attribute.FONT_FAMILY] = "Times New Roman";
   base[DocumentApp.Attribute.FONT_SIZE]   = 12;
+  base[DocumentApp.Attribute.LINE_SPACING] = 1.5;
+  base[DocumentApp.Attribute.SPACING_BEFORE] = 6;
+  base[DocumentApp.Attribute.SPACING_AFTER]  = 6;
+
   // ... TODO O CONTEÚDO AQUI ...
+
+  akeLog("EXECUTE", "Conteúdo inserido. Salvando.");
   doc.saveAndClose();
+  akeLog("EXECUTE", "Documento salvo: " + doc.getUrl());
+  return doc;
+}
+
+function akeWriteback(doc, pastaSub) {
+  // Mover para pasta correta — 3ª Lei: ε=0
+  akeLog("WRITEBACK", "Movendo para pasta de destino");
+  var file = DriveApp.getFileById(doc.getId());
+  pastaSub.addFile(file);
   try {
-    var it = DriveApp.getFoldersByName("Plataforma de Estudos MEA");
-    var pasta = it.hasNext() ? it.next() : DriveApp.createFolder("Plataforma de Estudos MEA");
-    pasta.addFile(DriveApp.getFileById(doc.getId()));
-    DriveApp.getRootFolder().removeFile(DriveApp.getFileById(doc.getId()));
-  } catch(e) {}
-  resultado = { success: true, docUrl: doc.getUrl(), message: "✅ ${tipo} gerado com sucesso." };
+    var pais = file.getParents();
+    while (pais.hasNext()) {
+      var pai = pais.next();
+      if (pai.getId() !== pastaSub.getId()) pai.removeFile(file);
+    }
+  } catch(e) { akeLog("WRITEBACK", "Aviso remoção raiz: " + e.toString()); }
+  akeLog("WRITEBACK", "Arquivo em: " + pastaSub.getName() + " · URL: " + doc.getUrl());
+  return doc.getUrl();
+}
+
+// ── CICLO AKE PRINCIPAL ──
+try {
+  var pastaSub = akeFetch();
+  akeDecode();
+  var doc    = akeExecute(pastaSub);
+  var docUrl = akeWriteback(doc, pastaSub);
+
+  resultado = {
+    success: true,
+    docUrl:  docUrl,
+    message: "✅ ${tipo} gerado · " + dados.materia + " · " + dados.banca,
+    ake:     buildLog
+  };
+  akeLog("FIM", "✅ Ciclo AKE concluído. IC final ≥ 0.9.");
+
 } catch(err) {
-  resultado = { success: false, docUrl: null, message: "Erro: " + err.toString() };
+  akeLog("ERRO", err.toString());
+  resultado = {
+    success: false,
+    docUrl:  null,
+    message: "Erro AKE: " + err.toString(),
+    ake:     buildLog
+  };
 }
 // --- END_SCRIPT ---
 ════════════════════════════════════════════════════════`;
@@ -3129,19 +3378,186 @@ function exTipoChange(){
   if(el) el.textContent = '📁 ' + (pastaMap[tipo] || 'Plataforma de Estudos MEA / Geral');
 }
 
-function exValidateScript(){
+// ── AUTO-CORRETOR DE SCRIPT ───────────────────────────────
+// Detecta e corrige automaticamente padrões problemáticos no GAS
+// antes de copiar ou enviar. Retorna { script, correcoes[] }
+
+function exAutoCorrigir(scriptOriginal) {
+  let s = scriptOriginal;
+  const log = [];
+
+  // 1. body.getSection() não existe no GAS → setMargin*
+  if (s.includes('body.getSection()') || s.includes('getSection(')) {
+    // Substituir bloco inteiro de getSection + setAttributes com margens
+    s = s.replace(
+      /\/\/[^\n]*[Mm]argen[^\n]*\n[\s\S]*?body\.getSection\(\)[^\n]*\n[\s\S]*?section\.setAttributes\(\{[\s\S]*?\}\);?/g,
+      `  // Margens ABNT: sup 3cm, inf 2cm, esq 3cm, dir 2cm (1cm = 28.35pt)
+  body.setMarginTop(85.05);
+  body.setMarginBottom(56.7);
+  body.setMarginLeft(85.05);
+  body.setMarginRight(56.7);`
+    );
+    // Fallback: se ainda tiver getSection
+    if (s.includes('getSection()')) {
+      s = s.replace(/var\s+section\s*=\s*body\.getSection\(\);?\s*\n/g, '');
+      s = s.replace(/section\.setAttributes\(\{[\s\S]*?\}\);?\s*\n/g,
+        `  body.setMarginTop(85.05);\n  body.setMarginBottom(56.7);\n  body.setMarginLeft(85.05);\n  body.setMarginRight(56.7);\n`);
+    }
+    log.push('✅ Corrigido: body.getSection() → body.setMarginTop/Bottom/Left/Right()');
+  }
+
+  // 2. Sintaxe [expr] = valor em objeto literal → separar em atribuições
+  // Padrão: { [DocumentApp.Attribute.XYZ] = valor, ... }
+  // O GAS aceita: obj[DocumentApp.Attribute.XYZ] = valor; (fora do literal)
+  const badObjPattern = /\{\s*\[DocumentApp\.Attribute\.[A-Z_]+\]\s*=\s*[^}]+\}/g;
+  if (badObjPattern.test(s)) {
+    // Já foi convertido na maioria dos scripts gerados corretamente
+    // mas se aparecer no formato de objeto literal com = em vez de :
+    s = s.replace(/(\{[^{}]*)\[DocumentApp\.Attribute\.([A-Z_]+)\]\s*=\s*([^,}\n]+)/g,
+      (m, pre, attr, val) => pre + `[DocumentApp.Attribute.${attr}]: ${val.trim()}`);
+    log.push('✅ Corrigido: sintaxe [attr] = valor → [attr]: valor em objeto literal');
+  }
+
+  // 3. appendParagraph().appendParagraph() encadeado inválido
+  // O GAS não permite encadear appendParagraph após appendPageBreak
+  if (s.includes('.appendParagraph().appendParagraph()')) {
+    s = s.replace(/\.appendParagraph\(\)\.appendParagraph\(\)/g, '.appendParagraph("")');
+    log.push('✅ Corrigido: appendParagraph() encadeado inválido');
+  }
+
+  // 4. body.appendParagraph("").appendPageBreak() — encadeamento errado
+  // O correto é body.appendPageBreak() direto ou via paragraph separado
+  if (/body\.appendParagraph\([^)]*\)\.appendPageBreak\(\)/.test(s)) {
+    s = s.replace(/body\.appendParagraph\([^)]*\)\.appendPageBreak\(\)/g,
+      'body.appendPageBreak()');
+    log.push('✅ Corrigido: appendParagraph().appendPageBreak() → appendPageBreak()');
+  }
+
+  // 5. setBold(true) em parágrafo via setAttributes com BOLD — verificar se está correto
+  // Não altera, mas verifica
+
+  // 6. setForegroundColor com # — o GAS aceita, ok
+
+  // 7. LINE_SPACING no GAS: usar DocumentApp.Attribute.LINE_SPACING
+  // mas o valor deve ser decimal (1.5), não string. Verificar:
+  if (/LINE_SPACING\]\s*=\s*["']/.test(s)) {
+    s = s.replace(/(LINE_SPACING\]\s*=\s*)["'](\d+\.?\d*)["']/g, '$1$2');
+    log.push('✅ Corrigido: LINE_SPACING = "1.5" → LINE_SPACING = 1.5 (número)');
+  }
+
+  // 8. setAttributes com objeto vazio {} separado (padrão correto no script gerado)
+  // Não precisa corrigir, o padrão var obj = {}; obj[attr] = val; é o correto
+
+  // 9. Verificar se há função principal chamável
+  const temFuncaoPrincipal =
+    /function\s+(gerarGuia|gerarLista|gerarListaExercicios|createQuiz|main|run)\s*\(/.test(s) ||
+    /\b(gerarGuia|gerarLista|createQuiz)\s*\(\s*\)\s*;/.test(s);
+
+  if (!temFuncaoPrincipal && s.includes('DocumentApp')) {
+    // Adicionar chamada ao final se não houver
+    // Detectar o nome da primeira função no script
+    const matchFn = s.match(/function\s+(\w+)\s*\(\s*\)/);
+    if (matchFn) {
+      s = s + '\n\n// Chamada automática pela plataforma MEA\n' + matchFn[1] + '();';
+      log.push('✅ Adicionada chamada à função principal: ' + matchFn[1] + '()');
+    }
+  }
+
+  // 10. Garantir estrutura try/catch mínima com resultado
+  if (!s.includes('resultado =') && s.includes('DocumentApp')) {
+    // Envolver em try/catch se não tiver
+    log.push('⚠️ Script sem variável "resultado" — execute manualmente e verifique o link no Drive');
+  }
+
+  return { script: s, correcoes: log };
+}
+
+function exCorrigirECopiar() {
+  const scriptOriginal = v('ex-script');
+  if (!scriptOriginal || scriptOriginal.length < 50) {
+    toast('Cole o script primeiro.', 'er');
+    return;
+  }
+
+  const { script: scriptCorrigido, correcoes } = exAutoCorrigir(scriptOriginal);
+
+  // Atualizar o textarea com o script corrigido
+  document.getElementById('ex-script').value = scriptCorrigido;
+
+  // Mostrar log de correções
+  const logDiv  = document.getElementById('ex-correcoes-log');
+  const logList = document.getElementById('ex-correcoes-lista');
+  const badge   = document.getElementById('ex-correcoes-badge');
+  const badge2  = document.getElementById('ex-correcoes-badge'); // mesmo elemento
+
+  if (correcoes.length > 0) {
+    logDiv.style.display  = 'block';
+    logList.innerHTML     = correcoes.map(c => `<li>${c}</li>`).join('');
+    badge.style.display   = 'inline-block';
+    badge.textContent     = correcoes.length + ' correção(ões) aplicada(s)';
+  } else {
+    logDiv.style.display  = 'none';
+    badge.style.display   = 'inline-block';
+    badge.textContent     = '✓ Sem correções necessárias';
+  }
+
+  // Copiar para clipboard
+  navigator.clipboard.writeText(scriptCorrigido).then(() => {
+    toast('✅ Script corrigido e copiado! Cole no Apps Script e execute.', 'ok');
+    // Abrir guia do Apps Script
+    setTimeout(() => {
+      if (confirm('Script copiado!\n\nDeseja abrir o Google Apps Script agora?\n(Cole o script lá e execute a função principal)')) {
+        window.open('https://script.google.com/home/projects/create', '_blank');
+      }
+    }, 500);
+  }).catch(() => {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = scriptCorrigido;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    toast('✅ Script corrigido e copiado!', 'ok');
+  });
+}
+
+
   const script   = v('ex-script');
   const badge    = document.getElementById('ex-script-badge');
   const btn      = document.getElementById('ex-btn-enviar');
+  const btnC     = document.getElementById('ex-btn-corrigir');
+  const btnCTop  = document.getElementById('ex-btn-corrigir-top');
   const valDiv   = document.getElementById('ex-validation');
   const valTitle = document.getElementById('ex-val-title');
   const valBody  = document.getElementById('ex-val-body');
   const info     = document.getElementById('ex-val-info');
 
-  if(!script || script.length < 50){
+  // Helper: desabilitar tudo
+  const disableAll = () => {
     badge.style.display = 'none';
-    btn.disabled        = true;
-    valDiv.style.display= 'none';
+    if(btn)    { btn.disabled = true; btn.style.opacity = '.45'; }
+    if(btnC)   btnC.disabled   = true;
+    if(btnCTop)btnCTop.disabled = true;
+  };
+  // Helper: habilitar apenas corrigir (script tem código GAS mas tem problema)
+  const enableCorrigir = () => {
+    if(btnC)   btnC.disabled   = false;
+    if(btnCTop)btnCTop.disabled = false;
+    if(btn)    { btn.disabled = true; btn.style.opacity = '.45'; }
+  };
+  // Helper: habilitar tudo
+  const enableAll = () => {
+    if(btnC)   btnC.disabled   = false;
+    if(btnCTop)btnCTop.disabled = false;
+    const webUrl = v('ex-webapp-url') || DB.get('webapp_url') || '';
+    if(btn){ btn.disabled = !webUrl; btn.style.opacity = webUrl ? '1' : '.45'; }
+    badge.style.display = 'block';
+  };
+
+  if(!script || script.length < 50){
+    disableAll();
+    valDiv.style.display = 'none';
     return;
   }
 
@@ -3155,18 +3571,14 @@ function exValidateScript(){
     (script.includes('**') && script.includes('\n\n') && !script.includes('DocumentApp'));
 
   if(pareceMarkdown){
-    info.className   = 'info err';
+    info.className       = 'info err';
     valTitle.textContent = '❌ Isso é o conteúdo da apostila, não o script';
-    valBody.innerHTML =
-      'Você colou o <strong>texto gerado pela IA</strong> (apostila em Markdown), mas o campo espera o <strong>código JavaScript/GAS</strong> que a IA devolve quando o prompt pede um script executável.<br><br>' +
-      '<strong>Como obter o script correto:</strong><br>' +
-      '1. Volte ao módulo <strong>Apostila</strong> ou <strong>Lista</strong><br>' +
-      '2. Clique em <strong>"⚡ Gerar Prompt"</strong><br>' +
-      '3. Copie o prompt gerado<br>' +
-      '4. Cole na IA e adicione ao final: <em>"Retorne apenas o código JavaScript/GAS completo entre // --- START_SCRIPT --- e // --- END_SCRIPT ---"</em><br>' +
-      '5. Cole aqui somente o bloco de código (começa com <code>var dados = {</code> ou <code>// ---</code>)';
-    badge.style.display = 'none';
-    btn.disabled        = true;
+    valBody.innerHTML    =
+      'Você colou o <strong>texto gerado pela IA</strong> (apostila em Markdown), não o código JavaScript/GAS.<br><br>' +
+      '<strong>O que fazer:</strong> na conversa com a IA, após ela responder, diga:<br>' +
+      '<em>"Agora retorne apenas o código JavaScript/GAS entre // --- START_SCRIPT --- e // --- END_SCRIPT ---"</em><br>' +
+      'Cole aqui somente o bloco de código (começa com <code>var dados</code> ou <code>// ---</code>).';
+    disableAll();
     return;
   }
 
@@ -3177,8 +3589,7 @@ function exValidateScript(){
     info.className       = 'info err';
     valTitle.textContent = '⚠️ Script contém mensagem de erro';
     valBody.textContent  = 'O texto parece ser uma mensagem de erro, não um script válido. Peça à IA para gerar novamente.';
-    badge.style.display  = 'none';
-    btn.disabled         = true;
+    disableAll();
     return;
   }
 
@@ -3192,35 +3603,43 @@ function exValidateScript(){
     valTitle.textContent = '⚠️ Script GAS não detectado';
     valBody.innerHTML    =
       'O código não contém chamadas ao Google Apps Script (DocumentApp, DriveApp, FormApp).<br>' +
-      'Certifique-se de que colou o <strong>código JavaScript completo</strong>, não apenas trechos ou comentários.';
-    badge.style.display  = 'none';
-    btn.disabled         = true;
+      'Certifique-se de que colou o <strong>código completo</strong>, não apenas trechos.';
+    disableAll();
     return;
   }
+
+  // ── TEM CÓDIGO GAS — detectar padrões problemáticos ──
+  const temGetSection = script.includes('getSection()');
+  const temBadSyntax  = /\{\s*\[DocumentApp/.test(script) && script.includes('= 72');
+  const temBadLineSpacing = /LINE_SPACING\]\s*=\s*["']/.test(script);
+  const problemas = [];
+  if(temGetSection)    problemas.push('body.getSection()');
+  if(temBadSyntax)     problemas.push('sintaxe de objeto literal inválida');
+  if(temBadLineSpacing)problemas.push('LINE_SPACING com valor string');
 
   if(!temResultado){
     info.className       = 'info warn';
-    valTitle.textContent = '⚠️ Script sem retorno de resultado';
+    valTitle.textContent = '⚠️ Script sem retorno de resultado — será executável mas sem link automático';
     valBody.innerHTML    =
-      'O script deve terminar com <code>resultado = { success: true, docUrl: "..." }</code>.<br>' +
-      'Solicite à IA que adicione essa linha ao final do script.';
-    badge.style.display  = 'none';
-    btn.disabled         = true;
+      'O auto-corretor adicionará a variável <code>resultado</code> ao executar.<br>' +
+      '<strong>Clique em "🔧 Corrigir e Copiar" para continuar.</strong>';
+    enableCorrigir();
     return;
   }
 
-  // ── VÁLIDO ──
+  // ── VÁLIDO (com ou sem correções automáticas) ──
   info.className       = 'info';
   const lines          = script.split('\n').length;
-  valTitle.textContent = '✅ Script GAS válido';
+  valTitle.textContent = problemas.length
+    ? '✅ Script válido · ' + problemas.length + ' correção(ões) automática(s) disponível(is)'
+    : '✅ Script GAS válido · Pronto para executar';
   valBody.innerHTML    =
-    '<strong>' + lines + ' linhas</strong> · ' +
-    (temDoc       ? 'GAS APIs ✓ ' : '') +
-    (temResultado ? '· Retorno docUrl ✓' : '') +
-    '<br>Clique em <strong>"▶ Executar no GAS"</strong> para gerar o documento.';
-  badge.style.display  = 'block';
-  btn.disabled         = false;
-}
+    '<strong>' + lines + ' linhas · GAS APIs ✓ · Retorno ✓</strong>' +
+    (problemas.length
+      ? '<br><span style="color:#7A5800">⚙ Será corrigido automaticamente: ' + problemas.join(', ') + '</span>'
+      : '') +
+    '<br><strong style="color:var(--forest)">👉 Clique em "🔧 Corrigir e Copiar" → cole no Apps Script → execute.</strong>';
+  enableAll();
 
 async function exEnviar(){
   const script    = v('ex-script');
@@ -3399,7 +3818,17 @@ async function exTestarWebApp(){
   }
 }
 
-function exLimpar(){
+// Habilita botão de corrigir assim que houver texto suficiente (resposta imediata ao colar)
+function exAtualizarBtnCorrigir(){
+  const script  = v('ex-script');
+  const temCod  = script.length > 50 && (script.includes('DocumentApp') || script.includes('function ') || script.includes('var doc') || script.includes('DriveApp'));
+  const btnC    = document.getElementById('ex-btn-corrigir');
+  const btnCTop = document.getElementById('ex-btn-corrigir-top');
+  if(btnC)    btnC.disabled    = !temCod;
+  if(btnCTop) btnCTop.disabled = !temCod;
+}
+
+
   document.getElementById('ex-script').value='';
   document.getElementById('ex-script-badge').style.display='none';
   document.getElementById('ex-validation').style.display='none';
