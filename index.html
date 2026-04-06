@@ -3458,6 +3458,138 @@ function switchTabLocal(btn, targetId){
 }
 
 
+// ════════════════════════════════════════════════════════
+// FUNÇÕES AUSENTES — restauradas via AKE FETCH→DECODE→EXECUTE
+// tentativas_falhas: 3 iterações de patch sem FETCH prévio
+// causa_raiz: str_replace sequenciais apagaram exValidateScript,
+//             exLimpar, apClear, lsClear sem registro
+// ════════════════════════════════════════════════════════
+
+function exValidateScript(){
+  const script   = v('ex-script');
+  const badge    = document.getElementById('ex-script-badge');
+  const btn      = document.getElementById('ex-btn-enviar');
+  const btnC     = document.getElementById('ex-btn-corrigir');
+  const btnCTop  = document.getElementById('ex-btn-corrigir-top');
+  const valDiv   = document.getElementById('ex-validation');
+  const valTitle = document.getElementById('ex-val-title');
+  const valBody  = document.getElementById('ex-val-body');
+  const info     = document.getElementById('ex-val-info');
+  if(!valDiv) return;
+
+  const disableAll = () => {
+    if(badge)  badge.style.display = 'none';
+    if(btn)    { btn.disabled = true; btn.style.opacity = '.45'; }
+    if(btnC)   btnC.disabled   = true;
+    if(btnCTop)btnCTop.disabled = true;
+  };
+  const enableCorrigir = () => {
+    if(btnC)   btnC.disabled   = false;
+    if(btnCTop)btnCTop.disabled = false;
+    if(btn)    { btn.disabled = true; btn.style.opacity = '.45'; }
+  };
+  const enableAll = () => {
+    if(btnC)   btnC.disabled   = false;
+    if(btnCTop)btnCTop.disabled = false;
+    const webUrl = v('ex-webapp-url') || DB.get('webapp_url') || '';
+    if(btn){ btn.disabled = !webUrl; btn.style.opacity = webUrl ? '1' : '.45'; }
+    if(badge) badge.style.display = 'block';
+  };
+
+  if(!script || script.length < 50){
+    disableAll();
+    valDiv.style.display = 'none';
+    return;
+  }
+  valDiv.style.display = 'block';
+
+  // Detectar: colou apostila em Markdown em vez do script
+  const pareceMarkdown =
+    (script.match(/^#{1,3} /m) && !script.includes('function ') && !script.includes('var ')) ||
+    script.startsWith('# ') || script.startsWith('## ') ||
+    (script.includes('**') && script.includes('\n\n') && !script.includes('DocumentApp'));
+
+  if(pareceMarkdown){
+    info.className = 'info err';
+    valTitle.textContent = '❌ Isso é o conteúdo da apostila, não o script';
+    valBody.innerHTML = 'Você colou o <b>texto gerado pela IA</b> (apostila em Markdown).<br>'
+      + 'O campo espera o <b>código JavaScript/GAS</b>.<br><br>'
+      + 'Na conversa com a IA, peça: <em>"Retorne apenas o código GAS entre // --- START_SCRIPT --- e // --- END_SCRIPT ---"</em>';
+    disableAll(); return;
+  }
+
+  const temErro = script.includes('SyntaxError') || script.includes('TypeError') || script.includes('Uncaught');
+  if(temErro){
+    info.className = 'info err';
+    valTitle.textContent = '⚠️ Script contém mensagem de erro';
+    valBody.textContent = 'Peça à IA para gerar novamente.';
+    disableAll(); return;
+  }
+
+  const temDoc   = script.includes('DocumentApp') || script.includes('FormApp') || script.includes('DriveApp');
+  const temFunc  = script.includes('function ') || script.includes('var doc') || script.includes('var dados');
+  if(!temDoc && !temFunc){
+    info.className = 'info warn';
+    valTitle.textContent = '⚠️ Script GAS não detectado';
+    valBody.innerHTML = 'Certifique-se de que colou o <b>código completo</b>, não apenas trechos.';
+    disableAll(); return;
+  }
+
+  const temResultado = script.includes('resultado') || script.includes('docUrl') || script.includes('doc.getUrl');
+  const temGetSection = script.includes('getSection()');
+  const problemas = [];
+  if(temGetSection) problemas.push('body.getSection() — será corrigido');
+  if(!temResultado) problemas.push('sem variável resultado — será adicionada');
+
+  info.className = 'info';
+  const lines = script.split('\n').length;
+  valTitle.textContent = problemas.length
+    ? '✅ Script válido · ' + problemas.length + ' correção(ões) automática(s)'
+    : '✅ Script GAS válido · Pronto';
+  valBody.innerHTML = '<b>' + lines + ' linhas · GAS APIs ✓</b>'
+    + (problemas.length ? '<br><span style="color:#7A5800">⚙ ' + problemas.join(' | ') + '</span>' : '')
+    + '<br><b>Clique em "🔧 Corrigir e Copiar"</b>';
+  enableAll();
+}
+
+function exLimpar(){
+  const ta = document.getElementById('ex-script');
+  if(ta) ta.value = '';
+  const badge = document.getElementById('ex-script-badge');
+  if(badge) badge.style.display = 'none';
+  const valDiv = document.getElementById('ex-validation');
+  if(valDiv) valDiv.style.display = 'none';
+  const res = document.getElementById('ex-resultado');
+  if(res) res.style.display = 'none';
+  const err = document.getElementById('ex-erro');
+  if(err) err.style.display = 'none';
+  const btnC   = document.getElementById('ex-btn-corrigir');
+  const btnCTop= document.getElementById('ex-btn-corrigir-top');
+  const btn    = document.getElementById('ex-btn-enviar');
+  if(btnC)    btnC.disabled    = true;
+  if(btnCTop) btnCTop.disabled = true;
+  if(btn)     { btn.disabled = true; btn.style.opacity = '.45'; }
+  const logDiv = document.getElementById('ex-correcoes-log');
+  if(logDiv) logDiv.style.display = 'none';
+  toast('Campo limpo.', 'ok');
+}
+
+function apClear(){
+  ['ap-materia','ap-assunto','ap-banca','ap-cargo','ap-orgao','ap-ano','ap-topicos','ap-analise','ap-biblio']
+    .forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  const wrap = document.getElementById('ap-wrap');
+  if(wrap) wrap.style.display = 'none';
+  toast('Formulário de apostila limpo.', 'ok');
+}
+
+function lsClear(){
+  ['ls-materia','ls-assunto','ls-banca','ls-cargo','ls-topicos','ls-analise','ls-guia']
+    .forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  const wrap = document.getElementById('ls-wrap');
+  if(wrap) wrap.style.display = 'none';
+  toast('Formulário de lista limpo.', 'ok');
+}
+
 // ── COPY GAS EXECUTOR ────────────────────────────────────
 // Lê o Code.gs armazenado em tag inerte (evita que < no código GAS
 // quebre o parser HTML — foi a causa raiz do bug "nada funciona ao clicar").
